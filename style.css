@@ -25,13 +25,13 @@ h1, h2, h3 {
     margin-bottom: 20px;
 }
 h3 {
-    color: #4682b4;
+    color: #4682b4; /* Steel blue for setting group headers */
     border-bottom: 1px dashed #ccc;
     margin-bottom: 15px;
     padding-bottom: 5px;
 }
 
-/* Section layout */
+
 .section {
     margin-bottom: 20px; /* Reduced margin */
     padding: 15px; /* Reduced padding */
@@ -40,7 +40,6 @@ h3 {
     background-color: #f9f9f9;
 }
 
-/* Textarea styling */
 textarea {
     width: 100%;
     padding: 10px; /* Reduced padding */
@@ -105,23 +104,26 @@ button:active {
 }
 
 /* Settings grid layout */
+/* Adjusted for better stacking on small screens */
 .settings-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Adjusted min size */
-    gap: 15px; /* Reduced gap */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
 }
 
 /* Setting group styling */
 .setting-group {
     border: 1px solid #eee;
-    padding: 15px; /* Reduced padding */
+    padding: 15px;
     border-radius: 8px;
     background-color: #fff;
+    /* Ensure groups take full width on small screens */
+    min-width: 100%;
 }
 
 /* Individual setting item styling */
 .setting-item {
-    margin-bottom: 12px; /* Reduced margin */
+    margin-bottom: 12px;
     display: flex;
     flex-direction: column;
 }
@@ -150,7 +152,7 @@ button:active {
 
 .setting-item small {
     color: #777;
-    margin-top: 4px; /* Reduced margin */
+    margin-top: 4px;
     font-size: 0.8rem;
 }
 
@@ -161,12 +163,14 @@ button:active {
 
 .setting-checkbox input[type="checkbox"] {
     margin-right: 8px;
-    width: auto;
+    width: auto; /* Prevent checkbox from stretching */
+    flex-shrink: 0; /* Prevent checkbox from shrinking */
 }
 .setting-checkbox label {
     margin-bottom: 0;
-    flex-grow: 1; /* Allow label to take available space */
+    flex-grow: 1;
 }
+
 
 /* Rule set item styling */
 .rule-set-item {
@@ -175,6 +179,9 @@ button:active {
     margin-bottom: 15px;
     border-radius: 6px;
     background-color: #f0f4f8; /* Light blue background */
+}
+.rule-set-item:last-child {
+     margin-bottom: 0;
 }
 .rule-set-item h4 {
     margin: 0 0 10px 0;
@@ -186,15 +193,14 @@ button:active {
     font-size: 0.85rem;
     color: #555;
     margin: 0 0 10px 0;
-    word-break: break-all; /* Break long URLs */
+    word-break: break-all;
 }
 .rule-set-item .setting-item {
-    margin-bottom: 10px; /* Less margin inside rule set item */
+    margin-bottom: 10px;
 }
 .rule-set-item .setting-item:last-child {
     margin-bottom: 0;
 }
-
 
 /* SnackBar Styling */
 #snackbar-container {
@@ -203,30 +209,31 @@ button:active {
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
+    width: 90%; /* Make container wider on small screens */
+    max-width: 400px; /* Max width for larger screens */
 }
 
 .snackbar {
     visibility: hidden;
-    min-width: 250px;
+    width: 100%; /* Use full width of container */
     color: #fff;
     text-align: center;
     border-radius: 4px;
     padding: 12px 20px;
-    position: fixed;
+    position: static; /* Position static within the container */
     z-index: 1000;
-    left: 50%;
-    bottom: 30px;
-    transform: translateX(-50%);
     font-size: 0.9rem;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    opacity: 0; /* Start hidden for animation */
-    transition: opacity 0.5s, bottom 0.5s;
+    opacity: 0;
+    /* Use position and transform for initial off-screen state for animation */
+    transform: translateY(20px);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
 }
 
 .snackbar.show {
     visibility: visible;
     opacity: 1;
-    bottom: 30px;
+    transform: translateY(0);
 }
 
 .snackbar.success { background-color: #4CAF50; }
@@ -235,54 +242,65 @@ button:active {
 .snackbar.warning { background-color: #ff9800; }
 
 
-/* Media query for smaller screens */
+/* Media query adjustments */
 @media (max-width: 600px) {
     body {
-        padding: 10px;
+        padding: 5px; /* Even less padding on very small screens */
     }
     .container {
-        padding: 15px;
-        margin: 10px auto;
+        padding: 10px; /* Even less padding */
+        margin: 5px auto; /* Even less margin */
     }
-    h1 {
-        font-size: 1.5rem;
-    }
-    h2 {
-        font-size: 1.3rem;
-    }
-     h3 {
-        font-size: 1.1rem;
-    }
+    h1 { font-size: 1.4rem; margin-bottom: 15px;}
+    h2 { font-size: 1.2rem; margin-bottom: 15px;}
+    h3 { font-size: 1.0rem; margin-bottom: 10px;}
     button {
-        padding: 10px 12px;
-        font-size: 0.9rem;
+        padding: 8px 10px;
+        font-size: 0.8rem;
+        margin-right: 5px;
+        margin-bottom: 5px;
     }
     .button-group {
         gap: 5px;
+        margin-top: 8px;
+    }
+    .section {
+        padding: 10px;
+        margin-bottom: 15px;
     }
     .settings-grid {
-         grid-template-columns: 1fr; /* Stack columns on very small screens */
-         gap: 15px;
+         grid-template-columns: 1fr; /* Always stack on small screens */
+         gap: 10px;
     }
      .setting-group {
         padding: 10px;
      }
      .setting-item {
-         margin-bottom: 10px;
+         margin-bottom: 8px;
      }
      textarea {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
+        min-height: 80px;
      }
-     .snackbar {
-        min-width: auto;
-        width: 90%;
-        left: 50%;
-        transform: translateX(-50%);
-        bottom: 10px; /* Adjust position */
-        padding: 10px 15px;
-        font-size: 0.85rem;
+     .setting-item label {
+         font-size: 0.85rem;
      }
-     .snackbar.show {
-        bottom: 10px;
+     .setting-item small {
+         font-size: 0.75rem;
      }
+      .rule-set-item h4 {
+          font-size: 0.95rem;
+      }
+     .rule-set-item p, .rule-set-item small {
+         font-size: 0.75rem;
+     }
+
+    /* SnackBar adjustments for very small screens */
+    #snackbar-container {
+        bottom: 5px; /* Position closer to the bottom edge */
+        width: 95%; /* Take more width */
+    }
+    .snackbar.show {
+        bottom: 5px; /* Match container bottom */
+    }
 }

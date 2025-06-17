@@ -13,7 +13,16 @@
         <p>Paste proxy URLs, customize common parameters, and generate your Sing-box config.</p>
 
         <div id="input-section" class="section">
-            <h2>1. Input Proxy URLs</h2>
+            <h2>1. Input & Template Selection</h2>
+            <div class="setting-item">
+                 <label for="template-select">Choose Base Template:</label>
+                 <select id="template-select">
+                     <option value="templateV1_12">Template (Complex - v1.12-like)</option>
+                     <option value="templateV1_11">Template (Simple - v1.11-like)</option>
+                 </select>
+                 <small>Select the Sing-box configuration structure to use.</small>
+            </div>
+
             <p>Paste your V2Ray, VLESS, Trojan, Shadowsocks, ShadowsocksR, Socks, or HTTP/HTTPS proxy URLs here (one per line).</p>
             <textarea id="input" rows="8" placeholder="Paste your proxy URLs here..."></textarea>
             <button onclick="showSection('settings-section')">Next: Configure Template</button>
@@ -21,180 +30,15 @@
 
         <div id="settings-section" class="section" style="display: none;">
              <h2>2. Customize Template Settings</h2>
-             <p>Adjust common parameters for your Sing-box configuration based on the built-in template.</p>
+             <p>Adjust common parameters for the selected Sing-box configuration.</p>
 
-             <div class="settings-grid">
-                 <div class="setting-group">
-                     <h3>General & Logging</h3>
-                     <div class="setting-item">
-                         <label for="log-level">Log Level:</label>
-                         <select id="log-level">
-                             <option value="error">error</option>
-                             <option value="warn">warn</option>
-                             <option value="info">info</option>
-                             <option value="debug">debug</option>
-                             <option value="trace">trace</option>
-                         </select>
-                         <small>Level of detail for logs.</small>
-                     </div>
-                      <div class="setting-item setting-checkbox">
-                         <input type="checkbox" id="log-timestamp">
-                         <label for="log-timestamp">Enable Log Timestamp</label>
-                         <small>Include timestamps in log entries.</small>
-                     </div>
-                 </div>
-
-                 <div class="setting-group">
-                      <h3>Inbounds (Listeners)</h3>
-                      <div class="setting-item">
-                         <label for="mixed-in-listen">Mixed Inbound (Socks/HTTP) Listen Address:</label>
-                         <input type="text" id="mixed-in-listen">
-                         <small>Address for mixed-in (usually 127.0.0.1 or 0.0.0.0).</small>
-                      </div>
-                     <div class="setting-item">
-                         <label for="mixed-in-port">Mixed Inbound Port:</label>
-                         <input type="number" id="mixed-in-port" min="1" max="65535">
-                         <small>Port for the main mixed-inbound (Socks/HTTP).</small>
-                     </div>
-                      <div class="setting-item">
-                         <label for="mixed-in2-port">Mixed Inbound 2 Port:</label>
-                         <input type="number" id="mixed-in2-port" min="1" max="65535">
-                         <small>Port for the second mixed-inbound (routed to proxy).</small>
-                     </div>
-                      <div class="setting-item">
-                         <label for="tun-http-proxy-server">TUN HTTP Proxy Server:</label>
-                         <input type="text" id="tun-http-proxy-server">
-                         <small>Address for TUN's built-in HTTP proxy.</small>
-                     </div>
-                     <div class="setting-item">
-                         <label for="tun-http-proxy-port">TUN HTTP Proxy Port:</label>
-                         <input type="number" id="tun-http-proxy-port" min="1" max="65535">
-                         <small>Port for TUN's built-in HTTP proxy.</small>
-                     </div>
-                      <div class="setting-item setting-checkbox">
-                         <input type="checkbox" id="tun-nat-independent">
-                         <label for="tun-nat-independent">TUN Endpoint Independent NAT</label>
-                         <small>Enable/disable EIM.</small>
-                     </div>
-                      <div class="setting-item setting-checkbox">
-                         <input type="checkbox" id="tun-auto-route">
-                         <label for="tun-auto-route">TUN Auto Route</label>
-                         <small>Let sing-box handle routing table.</small>
-                     </div>
-                      <div class="setting-item">
-                         <label for="tun-mtu">TUN MTU:</label>
-                         <input type="number" id="tun-mtu" min="576">
-                         <small>Maximum Transmission Unit for TUN.</small>
-                     </div>
-                 </div>
-
-                 <div class="setting-group">
-                      <h3>DNS Settings</h3>
-                     <div class="setting-item">
-                         <label for="dns-remote-server">DNS Remote Server:</label>
-                         <input type="text" id="dns-remote-server">
-                         <small>Hostname or IP for the main remote DNS (e.g., Cloudflare/Google).</small>
-                     </div>
-                      <div class="setting-item">
-                         <label for="dns-direct-server">DNS Direct Server:</label>
-                         <input type="text" id="dns-direct-server">
-                         <small>Hostname or IP for the direct DNS (e.g., Alidns).</small>
-                     </div>
-                     <div class="setting-item setting-checkbox">
-                         <input type="checkbox" id="dns-independent-cache">
-                         <label for="dns-independent-cache">Independent DNS Cache</label>
-                         <small>Use a cache separate from system DNS.</small>
-                     </div>
-                 </div>
-
-                 <div class="setting-group">
-                      <h3>Routing</h3>
-                     <div class="setting-item">
-                         <label for="route-final-outbound">Route Final Outbound Tag:</label>
-                         <input type="text" id="route-final-outbound">
-                         <small>The tag of the default outbound/selector for unmatched traffic (default: proxy).</small>
-                     </div>
-                      <div class="setting-item">
-                         <label for="default-domain-resolver">Default Domain Resolver:</label>
-                         <input type="text" id="default-domain-resolver">
-                         <small>The DNS server tag for default domain lookups (default: dns-direct).</small>
-                     </div>
-                      <div class="setting-item setting-checkbox">
-                         <input type="checkbox" id="route-auto-detect-interface">
-                         <label for="route-auto-detect-interface">Auto Detect Interface</label>
-                         <small>Attempt to automatically determine the outgoing interface.</small>
-                     </div>
-                 </div>
-
-                 <div class="setting-group">
-                      <h3>Remote Rule Sets</h3>
-                      <p>Customize URL, detour, and update interval for remote rule sets.</p>
-                       <!-- Rule set items will be dynamically populated here by script.js -->
-                       <div id="rule-sets-container">
-                           <!-- Example structure (populated by JS): -->
-                           <!--
-                            <div class="rule-set-item">
-                                <h4>geosite-category-ads-all</h4>
-                                <div class="setting-item setting-checkbox">
-                                    <input type="checkbox" id="ruleset-geosite-category-ads-all-enabled" checked>
-                                    <label for="ruleset-geosite-category-ads-all-enabled">Enable</label>
-                                </div>
-                                <div class="setting-item">
-                                    <label for="ruleset-geosite-category-ads-all-url">URL:</label>
-                                    <input type="text" id="ruleset-geosite-category-ads-all-url" readonly>
-                                </div>
-                                <div class="setting-item">
-                                    <label for="ruleset-geosite-category-ads-all-detour">Download Detour:</label>
-                                    <input type="text" id="ruleset-geosite-category-ads-all-detour">
-                                </div>
-                                <div class="setting-item">
-                                    <label for="ruleset-geosite-category-ads-all-interval">Update Interval:</label>
-                                    <input type="text" id="ruleset-geosite-category-ads-all-interval">
-                                </div>
-                            </div>
-                            -->
-                       </div>
-                 </div>
-
-
-                  <div class="setting-group">
-                      <h3>Experimental & Clash API</h3>
-                      <div class="setting-item setting-checkbox">
-                         <input type="checkbox" id="cache-file-enabled">
-                         <label for="cache-file-enabled">Enable Cache File</label>
-                         <small>Store DNS/FakeIP cache to file.</small>
-                     </div>
-                      <div class="setting-item">
-                         <label for="cache-file-path">Cache File Path:</label>
-                         <input type="text" id="cache-file-path">
-                         <small>Path for the cache database file.</small>
-                     </div>
-                      <div class="setting-item setting-checkbox">
-                         <input type="checkbox" id="cache-file-store-fakeip">
-                         <label for="cache-file-store-fakeip">Store FakeIP in Cache</label>
-                         <small>Save FakeIP mappings to the cache file.</small>
-                     </div>
-                      <div class="setting-item">
-                         <label for="clash-api-controller">Clash API Controller:</label>
-                         <input type="text" id="clash-api-controller">
-                         <small>Address and port for the Clash API (e.g., 127.0.0.1:9090).</small>
-                     </div>
-                      <div class="setting-item">
-                         <label for="clash-api-ui-url">Clash API UI Download URL:</label>
-                         <input type="text" id="clash-api-ui-url">
-                         <small>URL to download external UI (e.g., dashboard ZIP).</small>
-                     </div>
-                      <div class="setting-item">
-                         <label for="clash-api-ui-detour">Clash API UI Download Detour:</label>
-                         <input type="text" id="clash-api-ui-detour">
-                         <small>Outbound tag for downloading the UI (default: proxy).</small>
-                     </div>
-                  </div>
+             <div id="settings-form-container">
+                 <!-- Settings form fields will be dynamically populated here -->
              </div>
 
              <div class="button-group">
                  <button onclick="showSection('input-section')">Back to Input</button>
-                 <button onclick="populateSettingsForm(defaultBaseTemplate)">Reset Settings</button>
+                 <button id="reset-settings-button">Reset Settings</button> <!-- Button gets event listener in JS -->
                  <button onclick="showSection('output-section')">Generate Config</button>
              </div>
         </div>

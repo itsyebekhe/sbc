@@ -1,5 +1,5 @@
-// --- Base64 polyfill and helper functions (from your original code) ---
-// (Keep this section as it was provided in the previous version)
+
+// --- Base64 polyfill and helper functions (same as previous version) ---
 var version = "3.7.5";
 var VERSION = version;
 var _hasatob = typeof atob === "function";
@@ -123,9 +123,8 @@ var gBase64 = {
 // --- End Base64 polyfill and helpers ---
 
 
-// --- Define your single DEFAULT base template here ---
-// (Keep this section as it was provided in the previous version)
-const defaultBaseTemplate = {
+// --- Define Your Base Templates ---
+const templateV1_12 = {
   "log": {
     "level": "error",
     "timestamp": true
@@ -157,377 +156,87 @@ const defaultBaseTemplate = {
       }
     ],
     "rules": [
+      { "clash_mode": "Direct", "server": "dns-direct" },
+      { "clash_mode": "Global", "rule_set": [ "geosite-category-games" ], "domain_suffix": [ "xiaomi.com" ], "server": "dns-remote" },
+      { "clash_mode": "Global", "server": "dns-fake" },
+      { "query_type": [ 64, 65 ], "action": "predefined", "rcode": "NOTIMP" },
+       { "query_type": "HTTPS", "action": "reject" },
       {
-        "clash_mode": "Direct",
-        "server": "dns-direct"
+        "type": "logical", "mode": "and",
+        "rules": [ { "clash_mode": "AllowAds", "invert": true }, { "rule_set": "geosite-category-ads-all" } ],
+        "action": "predefined", "rcode": "NOERROR", "answer": "A"
       },
       {
-        "clash_mode": "Global",
-        "rule_set": [
-          "geosite-category-games"
-        ],
-        "domain_suffix": [
-          "xiaomi.com"
-        ],
-        "server": "dns-remote"
+        "type": "logical", "mode": "and",
+        "rules": [ { "query_type": [ "A", "AAAA" ] }, { "rule_set": [ "geosite-category-games" ], "domain_suffix": [ "xiaomi.com" ], "invert": true } ],
+        "action": "route", "server": "dns-fake", "rewrite_ttl": 1
       },
-      {
-        "clash_mode": "Global",
-        "server": "dns-fake"
-      },
-      {
-        "query_type": [
-          64,
-          65
-        ],
-        "action": "predefined",
-        "rcode": "NOTIMP"
-      },
-       {
-         "query_type": "HTTPS",
-         "action": "reject"
-       },
-      {
-        "type": "logical",
-        "mode": "and",
-        "rules": [
-          {
-            "clash_mode": "AllowAds",
-            "invert": true
-          },
-          {
-            "rule_set": "geosite-category-ads-all"
-          }
-        ],
-        "action": "predefined",
-        "rcode": "NOERROR",
-        "answer": "A"
-      },
-      {
-        "type": "logical",
-        "mode": "and",
-        "rules": [
-          {
-            "query_type": [
-              "A",
-              "AAAA"
-            ]
-          },
-          {
-            "rule_set": [
-              "geosite-category-games"
-            ],
-            "domain_suffix": [
-              "xiaomi.com"
-            ],
-            "invert": true
-          }
-        ],
-        "action": "route",
-        "server": "dns-fake",
-        "rewrite_ttl": 1
-      },
-      {
-        "domain_suffix": [
-          "bing.com",
-          "googleapis.cn",
-          "gstatic.com"
-        ],
-        "server": "dns-remote"
-      },
-      {
-        "domain_suffix": [
-          "senhewenhua.com",
-          "cnmdm.top",
-          "akamaized.net",
-          "moedot.net",
-          "cycani.org",
-          "skland.com",
-          "aliyun.com",
-          "online-fix.me"
-        ],
-        "rule_set": [
-          "geosite-cn"
-        ],
-        "server": "dns-direct"
-      }
+      { "domain_suffix": [ "bing.com", "googleapis.cn", "gstatic.com" ], "server": "dns-remote" },
+      { "domain_suffix": [ "senhewenhua.com", "cnmdm.top", "akamaized.net", "moedot.net", "cycani.org", "skland.com", "aliyun.com", "online-fix.me" ], "rule_set": [ "geosite-cn" ], "server": "dns-direct" }
     ],
     "final": "dns-remote",
     "independent_cache": true
   },
   "inbounds": [
     {
-      "endpoint_independent_nat": false,
-      "auto_route": true,
-      "address": [
-        "172.19.0.1/28",
-        "fdfe:dcba:9876::1/126"
-      ],
-      "platform": {
-        "http_proxy": {
-          "enabled": true,
-          "server": "127.0.0.1",
-          "server_port": 20808
-        }
-      },
-      "mtu": 9000,
-      "stack": "mixed",
-      "tag": "tun-in",
-      "type": "tun"
+      "endpoint_independent_nat": false, "auto_route": true,
+      "address": [ "172.19.0.1/28", "fdfe:dcba:9876::1/126" ],
+      "platform": { "http_proxy": { "enabled": true, "server": "127.0.0.1", "server_port": 20808 } },
+      "mtu": 9000, "stack": "mixed", "tag": "tun-in", "type": "tun"
     },
-    {
-      "type": "mixed",
-      "tag": "mixed-in",
-      "listen": "127.0.0.1",
-      "listen_port": 20808
-    },
-    {
-      "type": "mixed",
-      "tag": "mixed-in2",
-      "listen": "127.0.0.1",
-      "listen_port": 20809
-    }
+    { "type": "mixed", "tag": "mixed-in", "listen": "127.0.0.1", "listen_port": 20808 },
+    { "type": "mixed", "tag": "mixed-in2", "listen": "127.0.0.1", "listen_port": 20809 }
   ],
   "outbounds": [
-     {
-        "tag": "proxy",
-        "type": "selector",
-        "outbounds": []
-     },
-      {
-         "tag": "Auto",
-         "type": "urltest",
-         "outbounds": [],
-         "url": "http://cp.cloudflare.com/generate_204",
-         "interval": "10m"
-     },
-     {
-        "tag": "direct",
-        "type": "direct"
-     },
-     {
-         "tag": "bypass",
-         "type": "direct"
-     },
-     {
-        "tag": "block",
-        "type": "block"
-     },
-     {
-         "tag": "reject",
-         "type": "reject"
-     }
+     { "tag": "proxy", "type": "selector", "outbounds": [] },
+      { "tag": "Auto", "type": "urltest", "outbounds": [], "url": "http://cp.cloudflare.com/generate_204", "interval": "10m" },
+     { "tag": "direct", "type": "direct" },
+     { "tag": "bypass", "type": "direct" },
+     { "tag": "block", "type": "block" },
+     { "tag": "reject", "type": "reject" }
   ],
   "route": {
-    "default_domain_resolver": {
-      "server": "dns-direct"
-    },
+    "default_domain_resolver": { "server": "dns-direct" },
     "rules": [
+      { "inbound": [ "mixed-in2" ], "outbound": "proxy" },
+      { "rule_set": "geoip-telegram", "clash_mode": "Direct", "outbound": "direct" },
+      { "rule_set": "geoip-telegram", "outbound": "proxy" },
+      { "action": "sniff", "sniffer": [ "http", "tls", "quic", "dns" ], "timeout": "500ms" },
+      { "type": "logical", "mode": "or", "rules": [ { "port": 53 }, { "protocol": "dns" } ], "action": "hijack-dns" },
+      { "ip_is_private": true, "outbound": "direct" },
+      { "rule_set": "geosite-private", "outbound": "direct" },
+      { "outbound": "proxy", "clash_mode": "Global" },
+      { "outbound": "direct", "clash_mode": "Direct" },
+       { "clash_mode": "AllowAds", "outbound": "direct" },
+      { "type": "logical", "mode": "or", "rules": [ { "protocol": "quic" }, { "network": "udp", "port": 443 } ], "action": "reject", "method": "default" },
+      { "source_ip_cidr": [ "224.0.0.0/3", "ff00::/8" ], "ip_cidr": [ "224.0.0.0/3", "ff00::/8" ], "action": "reject", "method": "default" },
       {
-        "inbound": [
-          "mixed-in2"
-        ],
-        "outbound": "proxy"
+        "type": "logical", "mode": "and",
+        "rules": [ { "clash_mode": "AllowAds", "invert": true }, { "rule_set": "geosite-category-ads-all" } ],
+        "action": "reject", "method": "default"
       },
-      {
-        "rule_set": "geoip-telegram",
-        "clash_mode": "Direct",
-        "outbound": "direct"
-      },
-      {
-        "rule_set": "geoip-telegram",
-        "outbound": "proxy"
-      },
-      {
-        "action": "sniff",
-        "sniffer": [
-          "http",
-          "tls",
-          "quic",
-          "dns"
-        ],
-        "timeout": "500ms"
-      },
-      {
-        "type": "logical",
-        "mode": "or",
-        "rules": [
-          {
-            "port": 53
-          },
-          {
-            "protocol": "dns"
-          }
-        ],
-        "action": "hijack-dns"
-      },
-      {
-        "ip_is_private": true,
-        "outbound": "direct"
-      },
-      {
-        "rule_set": "geosite-private",
-        "outbound": "direct"
-      },
-      {
-        "outbound": "proxy",
-        "clash_mode": "Global"
-      },
-      {
-        "outbound": "direct",
-        "clash_mode": "Direct"
-      },
-       {
-           "clash_mode": "AllowAds",
-           "outbound": "direct"
-       },
-      {
-        "type": "logical",
-        "mode": "or",
-        "rules": [
-          {
-            "protocol": "quic"
-          },
-          {
-            "network": "udp",
-            "port": 443
-          }
-        ],
-        "action": "reject",
-        "method": "default"
-      },
-      {
-        "source_ip_cidr": [
-          "224.0.0.0/3",
-          "ff00::/8"
-        ],
-        "ip_cidr": [
-          "224.0.0.0/3",
-          "ff00::/8"
-        ],
-        "action": "reject",
-        "method": "default"
-      },
-      {
-        "type": "logical",
-        "mode": "and",
-        "rules": [
-          {
-            "clash_mode": "AllowAds",
-            "invert": true
-          },
-          {
-            "rule_set": "geosite-category-ads-all"
-          }
-        ],
-        "action": "reject",
-        "method": "default"
-      },
-      {
-        "domain_suffix": [
-          "bing.com",
-          "googleapis.cn",
-          "gstatic.com"
-        ],
-        "outbound": "proxy"
-      },
-      {
-        "domain_suffix": [
-          "cycani.org",
-          "senhewenhua.com",
-          "cnmdm.top",
-          "akamaized.net",
-          "moedot.net",
-          "skland.com",
-          "aliyun.com",
-          "online-fix.me"
-        ],
-        "rule_set": "geosite-cn",
-        "outbound": "direct"
-      },
-      {
-        "rule_set": "geosite-geolocation-!cn",
-        "outbound": "proxy"
-      },
-      {
-        "action": "resolve",
-        "server": "dns-remote"
-      },
-      {
-        "ip_is_private": true,
-        "outbound": "direct"
-      },
-      {
-        "rule_set": "geoip-cn",
-        "outbound": "direct"
-      }
+      { "domain_suffix": [ "bing.com", "googleapis.cn", "gstatic.com" ], "outbound": "proxy" },
+      { "domain_suffix": [ "cycani.org", "senhewenhua.com", "cnmdm.top", "akamaized.net", "moedot.net", "skland.com", "aliyun.com", "online-fix.me" ], "rule_set": "geosite-cn", "outbound": "direct" },
+      { "rule_set": "geosite-geolocation-!cn", "outbound": "proxy" },
+      { "action": "resolve", "server": "dns-remote" },
+      { "ip_is_private": true, "outbound": "direct" },
+      { "rule_set": "geoip-cn", "outbound": "direct" }
     ],
     "rule_set": [
-      {
-        "type": "remote",
-        "tag": "geosite-category-ads-all",
-        "format": "binary",
-        "url": "https://raw.githubusercontent.com/lyc8503/sing-box-rules/rule-set-geosite/geosite-category-ads-all.srs",
-        "download_detour": "proxy",
-        "update_interval": "72h0m0s"
-      },
-      {
-        "type": "remote",
-        "tag": "geosite-private",
-        "format": "binary",
-        "url": "https://raw.githubusercontent.com/lyc8503/sing-box-rules/rule-set-geosite/geosite-private.srs",
-        "download_detour": "proxy",
-        "update_interval": "72h0m0s"
-      },
-      {
-        "type": "remote",
-        "tag": "geosite-cn",
-        "format": "binary",
-        "url": "https://raw.githubusercontent.com/lyc8503/sing-box-rules/rule-set-geosite/geosite-cn.srs",
-        "download_detour": "proxy",
-        "update_interval": "72h0m0s"
-      },
-      {
-        "type": "remote",
-        "tag": "geoip-cn",
-        "format": "binary",
-        "url": "https://raw.githubusercontent.com/lyc8503/sing-box-rules/rule-set-geoip/geoip-cn.srs",
-        "download_detour": "proxy",
-        "update_interval": "72h0m0s"
-      },
-      {
-        "type": "remote",
-        "tag": "geoip-telegram",
-        "format": "binary",
-        "url": "https://raw.githubusercontent.com/lyc8503/sing-box-rules/rule-set-geoip/geoip-telegram.srs",
-        "download_detour": "proxy",
-        "update_interval": "72h0m0s"
-      },
-      {
-        "type": "remote",
-        "tag": "geosite-geolocation-!cn",
-        "format": "binary",
-        "url": "https://raw.githubusercontent.com/lyc8503/sing-box-rules/rule-set-geosite/geosite-geolocation-!cn.srs",
-        "download_detour": "proxy",
-        "update_interval": "72h0m0s"
-      },
-      {
-        "type": "remote",
-        "tag": "geosite-category-games",
-        "format": "binary",
-        "url": "https://raw.githubusercontent.com/lyc8503/sing-box-rules/rule-set-geosite/geosite-category-games.srs",
-        "download_detour": "proxy",
-        "update_interval": "72h0m0s"
-      }
+      { "type": "remote", "tag": "geosite-category-ads-all", "format": "binary", "url": "https://raw.githubusercontent.com/lyc8503/sing-box-rules/rule-set-geosite/geosite-category-ads-all.srs", "download_detour": "proxy", "update_interval": "72h0m0s" },
+      { "type": "remote", "tag": "geosite-private", "format": "binary", "url": "https://raw.githubusercontent.com/lyc8503/sing-box-rules/rule-set-geosite/geosite-private.srs", "download_detour": "proxy", "update_interval": "72h0m0s" },
+      { "type": "remote", "tag": "geosite-cn", "format": "binary", "url": "https://raw.githubusercontent.com/lyc8503/sing-box-rules/rule-set-geosite/geosite-cn.srs", "download_detour": "proxy", "update_interval": "72h0m0s" },
+      { "type": "remote", "tag": "geoip-cn", "format": "binary", "url": "https://raw.githubusercontent.com/lyc8503/sing-box-rules/rule-set-geoip/geoip-cn.srs", "download_detour": "proxy", "update_interval": "72h0m0s" },
+      { "type": "remote", "tag": "geoip-telegram", "format": "binary", "url": "https://raw.githubusercontent.com/lyc8503/sing-box-rules/rule-set-geoip/geoip-telegram.srs", "download_detour": "proxy", "update_interval": "72h0m0s" },
+      { "type": "remote", "tag": "geosite-geolocation-!cn", "format": "binary", "url": "https://raw.githubusercontent.com/lyc8503/sing-box-rules/rule-set-geosite/geosite-geolocation-!cn.srs", "download_detour": "proxy", "update_interval": "72h0m0s" },
+      { "type": "remote", "tag": "geosite-category-games", "format": "binary", "url": "https://raw.githubusercontent.com/lyc8503/sing-box-rules/rule-set-geosite/geosite-category-games.srs", "download_detour": "proxy", "update_interval": "72h0m0s" }
     ],
     "final": "proxy",
     "auto_detect_interface": true
   },
   "experimental": {
     "cache_file": {
-      "enabled": true,
-      "path": "cache.db",
-      "store_fakeip": true
+      "enabled": true, "path": "cache.db", "store_fakeip": true
     },
     "clash_api": {
       "external_controller": "127.0.0.1:9090",
@@ -538,8 +247,94 @@ const defaultBaseTemplate = {
   }
 };
 
+const templateV1_11 = {
+  "log": {
+    "disabled": false,
+    "level": "warn"
+  },
+  "dns": {
+    "final": "dns-proxy",
+    "strategy": "ipv4_only",
+    "cache_capacity": 2048,
+    "disable_cache": false,
+    "disable_expire": false,
+    "independent_cache": false,
+    "reverse_mapping": false,
+    "rules": [
+      { "rule_set": "geosite-private", "action": "route", "server": "dns-local" },
+      { "outbound": "any", "action": "route", "server": "dns-direct" }
+    ],
+    "servers": [
+      { "address": "tls://9.9.9.9", "detour": "proxy", "tag": "dns-proxy" },
+      { "address": "tcp://9.9.9.9", "detour": "direct", "tag": "dns-direct" },
+      { "address": "local", "detour": "direct", "tag": "dns-local" }
+    ]
+  },
+  "experimental": {
+    "cache_file": {
+      "enabled": true, "store_fakeip": false, "store_rdrc": true, "rdrc_timeout": "1d"
+    },
+    "clash_api": {
+      "external_controller": "127.0.0.1:9595",
+      "external_ui": "dashboard",
+      "external_ui_download_detour": "proxy",
+      "external_ui_download_url": "https://github.com/MetaCubeX/Yacd-meta/archive/gh-pages.zip"
+    }
+  },
+  "inbounds": [
+    {
+      "tag": "tun-in", "type": "tun", "interface_name": "sing-box",
+      "address": [ "172.18.0.1/30" ], "mtu": 9000, "stack": "gvisor",
+      "auto_route": true, "strict_route": true
+    },
+    { "listen": "::", "listen_port": 8181, "tag": "mixed-in-8181", "type": "mixed", "udp_fragment": false }
+  ],
+  "outbounds": [
+    {
+      "tag": "proxy", "type": "selector", "interrupt_exist_connections": true,
+      "outbounds": [ "trojan-ws-mux" ] // Initial outbound, will be replaced/added to
+    },
+    // This template includes an example outbound, which we should ideally remove before adding parsed ones,
+    // or handle it as a potential default option. For simplicity, we'll ignore this hardcoded one
+    // and just add the parsed ones to the selector.
+    { "tag": "direct", "type": "direct", "udp_fragment": false, "tcp_fast_open": false },
+     { "tag": "block", "type": "block" }, // Added block/reject for consistency
+     { "tag": "reject", "type": "reject" }
+  ],
+  "route": {
+    "final": "proxy",
+    "auto_detect_interface": true,
+    "rule_set": [
+      { "download_detour": "proxy", "format": "binary", "tag": "geoip-private", "type": "remote", "url": "https://raw.githubusercontent.com/Chocolate4U/Iran-sing-box-rules/rule-set/geoip-private.srs" },
+      { "download_detour": "proxy", "format": "binary", "tag": "geosite-private", "type": "remote", "url": "https://raw.githubusercontent.com/Chocolate4U/Iran-sing-box-rules/rule-set/geosite-private.srs" },
+      { "download_detour": "proxy", "format": "binary", "tag": "geoip-ir", "type": "remote", "url": "https://raw.githubusercontent.com/Chocolate4U/Iran-sing-box-rules/rule-set/geoip-ir.srs" },
+      { "download_detour": "proxy", "format": "binary", "tag": "geosite-ir", "type": "remote", "url": "https://raw.githubusercontent.com/Chocolate4U/Iran-sing-box-rules/rule-set/geosite-ir.srs" }
+    ],
+    "rules": [
+      { "action": "sniff", "timeout": "10ms" },
+      { "protocol": "dns", "action": "hijack-dns" },
+      { "action": "resolve", "ip_cidr": "10.10.34.32/29" }, // This seems like a specific local setup, might need clarification
+      { "action": "reject", "ip_cidr": "10.10.34.32/29" }, // Rejecting the resolved range?
+      { "ip_is_private": true, "action": "route", "outbound": "direct" },
+      { "action": "route", "outbound": "direct", "rule_set": [ "geoip-private", "geosite-private" ] },
+      { "action": "route", "outbound": "direct", "domain_suffix": [ "do-not-proxy-site.com" ] }, // Example rule
+      { "action": "route", "outbound": "proxy", "domain_suffix": [ "proxy-site.com" ] }, // Example rule
+      { "action": "route", "outbound": "direct", "rule_set": [ "geoip-ir", "geosite-ir" ] }
+    ]
+  }
+};
 
-// --- Parsing Functions (same as previous version) ---
+// Map template names to objects
+const templates = {
+    templateV1_12: templateV1_12,
+    templateV1_11: templateV1_11
+};
+
+
+// --- Parsing Functions (same as previous version, handles various protocols and params) ---
+// (Include the v2rayToSing function and its helper parsers: parseVmessUrl, parseVlessUrl,
+// parseTrojanUrl, parseShadowsocksUrl, parseShadowsocksRUrl, parseSocksUrl, parseHttpUrl)
+// (Also include the ipChecker function)
 async function v2rayToSing(v2rayAccount) {
   let v2rayArrayUrl = v2rayAccount.split("\n").map(line => line.trim()).filter(line => line !== "");
 
@@ -1208,7 +1003,6 @@ function downloadConfig(outputId){
    SnackBar({ message: `Downloaded ${a.download}`, status: "success" });
 }
 
-// Simple SnackBar function (replace if you have a library)
  function SnackBar({ message, status = "info" }) {
      console.log(`SnackBar - Status: ${status}, Message: ${message}`);
      let snackbarContainer = document.getElementById('snackbar-container');
@@ -1222,14 +1016,21 @@ function downloadConfig(outputId){
      msgElement.classList.add('snackbar', status);
      msgElement.textContent = message;
 
+     // Clear previous messages and append the new one
      snackbarContainer.innerHTML = '';
      snackbarContainer.appendChild(msgElement);
 
-     msgElement.classList.add('show');
+     // Trigger the show animation
+     requestAnimationFrame(() => { // Use rAF to ensure display:block is applied before transition
+          msgElement.classList.add('show');
+     });
+
 
      setTimeout(function(){
+         // Trigger the hide animation
          msgElement.classList.remove('show');
-         setTimeout(() => { msgElement.remove(); }, 500);
+         // Remove element after hide animation completes
+         setTimeout(() => { msgElement.remove(); }, 300); // Match CSS transition duration
      }, 3000);
  }
 
@@ -1266,134 +1067,232 @@ function cleanObject(obj) {
     }
 }
 
-
-// --- Populate Rule Sets Section ---
-function populateRuleSetsSettings(ruleSets, containerId = 'rule-sets-container') {
-    const container = document.getElementById(containerId);
-    if (!container) {
-        console.error(`Rule sets container with ID ${containerId} not found.`);
-        return;
+// --- Rule Set Form Field Generation ---
+function generateRuleSetHtml(ruleSet) {
+    if (ruleSet.type !== 'remote' || !ruleSet.tag) {
+        return ''; // Only generate HTML for remote rule sets with tags
     }
-    container.innerHTML = ''; // Clear previous content
+    const tag = ruleSet.tag.replace(/[^a-zA-Z0-9_-]/g, ''); // Sanitize tag for ID
 
-    if (!ruleSets || !Array.isArray(ruleSets)) {
-        console.warn("No rule sets array found in template.");
-        return;
-    }
-
-    ruleSets.forEach(ruleSet => {
-        // Only display remote rule sets for editing
-        if (ruleSet.type !== 'remote' || !ruleSet.tag) {
-             console.warn("Skipping non-remote or untagged rule set:", ruleSet);
-            return;
-        }
-
-        const tag = ruleSet.tag.replace(/[^a-zA-Z0-9_-]/g, ''); // Sanitize tag for ID
-
-        const ruleSetHtml = `
-            <div class="rule-set-item">
-                <h4>${ruleSet.tag}</h4>
-                <div class="setting-item setting-checkbox">
-                    <input type="checkbox" id="ruleset-${tag}-enabled" ${true ? 'checked' : ''}>
-                    <label for="ruleset-${tag}-enabled">Enable Rule Set</label>
-                     <small>Disable to exclude this rule set.</small>
-                </div>
-                 <div class="setting-item">
-                     <label for="ruleset-${tag}-url">URL:</label>
-                     <input type="text" id="ruleset-${tag}-url" value="${ruleSet.url || ''}" readonly>
-                     <small>Source URL for the rule set.</small>
-                 </div>
-                <div class="setting-item">
-                    <label for="ruleset-${tag}-detour">Download Detour:</label>
-                    <input type="text" id="ruleset-${tag}-detour" value="${ruleSet.download_detour || ''}">
-                    <small>Outbound tag (e.g., 'proxy', 'direct') for downloading.</small>
-                </div>
-                <div class="setting-item">
-                    <label for="ruleset-${tag}-interval">Update Interval:</label>
-                    <input type="text" id="ruleset-${tag}-interval" value="${ruleSet.update_interval || ''}">
-                    <small>e.g., "24h0m0s", "7d".</small>
-                </div>
+    return `
+        <div class="rule-set-item">
+            <h4>${ruleSet.tag}</h4>
+            <div class="setting-item setting-checkbox">
+                <input type="checkbox" id="ruleset-${tag}-enabled" checked>
+                <label for="ruleset-${tag}-enabled">Enable Rule Set</label>
+                 <small>Disable to exclude this rule set.</small>
             </div>
-        `;
-        container.insertAdjacentHTML('beforeend', ruleSetHtml);
-    });
+             <div class="setting-item">
+                 <label for="ruleset-${tag}-url">URL:</label>
+                 <input type="text" id="ruleset-${tag}-url" value="${ruleSet.url || ''}" readonly>
+                 <small>Source URL for the rule set.</small>
+             </div>
+            <div class="setting-item">
+                <label for="ruleset-${tag}-detour">Download Detour:</label>
+                <input type="text" id="ruleset-${tag}-detour" value="${ruleSet.download_detour || ''}">
+                <small>Outbound tag (e.g., 'proxy', 'direct') for downloading.</small>
+            </div>
+            <div class="setting-item">
+                <label for="ruleset-${tag}-interval">Update Interval:</label>
+                <input type="text" id="ruleset-${tag}-interval" value="${ruleSet.update_interval || ''}">
+                <small>e.g., "24h0m0s", "7d".</small>
+            </div>
+        </div>
+    `;
 }
 
 
 // --- Populate Settings Form with values from a Config Object ---
 function populateSettingsForm(config) {
     console.log("Populating settings form from config:", config);
-    try { document.getElementById('log-level').value = config.log?.level || 'error'; } catch(e){ console.warn("Failed to set log level", e); }
-    try { document.getElementById('log-timestamp').checked = config.log?.timestamp === true; } catch(e){ console.warn("Failed to set log timestamp", e); }
+    const settingsContainer = document.getElementById('settings-form-container');
+    settingsContainer.innerHTML = ''; // Clear previous fields
 
-    try {
-        const mixedIn = config.inbounds?.find(i => i.tag === 'mixed-in');
-        if (mixedIn) {
-            document.getElementById('mixed-in-listen').value = mixedIn.listen || '127.0.0.1';
-            document.getElementById('mixed-in-port').value = mixedIn.listen_port || 20808;
-        } else { console.warn("Mixed-in inbound not found in template"); }
-    } catch(e){ console.warn("Failed to populate mixed-in settings", e); }
+    // Dynamically create form fields based on the template structure
+    let html = '';
 
-     try {
-        const mixedIn2 = config.inbounds?.find(i => i.tag === 'mixed-in2');
-        if (mixedIn2) {
-            document.getElementById('mixed-in2-port').value = mixedIn2.listen_port || 20809;
-        } else { console.warn("Mixed-in2 inbound not found in template"); }
-    } catch(e){ console.warn("Failed to populate mixed-in2 settings", e); }
-
-    try {
-        const tunIn = config.inbounds?.find(i => i.tag === 'tun-in');
-         if (tunIn) {
-            document.getElementById('tun-nat-independent').checked = tunIn.endpoint_independent_nat === true;
-            document.getElementById('tun-auto-route').checked = tunIn.auto_route === true;
-            document.getElementById('tun-mtu').value = tunIn.mtu || 9000;
-             if (tunIn.platform?.http_proxy) {
-                document.getElementById('tun-http-proxy-server').value = tunIn.platform.http_proxy.server || '127.0.0.1';
-                document.getElementById('tun-http-proxy-port').value = tunIn.platform.http_proxy.server_port || 20808;
-             } else { console.warn("TUN http_proxy platform not found in template or disabled"); }
-         } else { console.warn("TUN inbound not found in template"); }
-    } catch(e){ console.warn("Failed to populate tun settings", e); }
+    // --- General & Logging ---
+    html += '<div class="setting-group"><h3>General & Logging</h3>';
+    html += `<div class="setting-item"><label for="log-level">Log Level:</label><select id="log-level">
+                <option value="error">error</option><option value="warn">warn</option>
+                <option value="info">info</option><option value="debug">debug</option>
+                <option value="trace">trace</option></select><small>Level of detail for logs.</small></div>`;
+    html += `<div class="setting-item setting-checkbox"><input type="checkbox" id="log-timestamp">
+             <label for="log-timestamp">Enable Log Timestamp</label><small>Include timestamps in log entries.</small></div>`;
+    html += '</div>';
 
 
-    try {
-        const dnsRemote = config.dns?.servers?.find(s => s.tag === 'dns-remote');
-        if (dnsRemote) {
-            document.getElementById('dns-remote-server').value = dnsRemote.server || 'cloudflare-dns.com';
-        } else { console.warn("dns-remote server not found in template"); }
-    } catch(e){ console.warn("Failed to populate dns-remote server", e); }
+    // --- Inbounds ---
+    html += '<div class="setting-group"><h3>Inbounds (Listeners)</h3>';
+    const mixedIn = config.inbounds?.find(i => i.tag === 'mixed-in' || i.tag === 'mixed-in-8181'); // Handle both tags
+    if (mixedIn) {
+        html += `<div class="setting-item"><label for="mixed-in-listen">Mixed Inbound (Socks/HTTP) Listen Address:</label>
+                 <input type="text" id="mixed-in-listen" value="${mixedIn.listen || '127.0.0.1'}">
+                 <small>Address for mixed-in (usually 127.0.0.1 or ::).</small></div>`; // Updated help text
+        html += `<div class="setting-item"><label for="mixed-in-port">Mixed Inbound Port:</label>
+                 <input type="number" id="mixed-in-port" value="${mixedIn.listen_port || 20808}" min="1" max="65535">
+                 <small>Port for the main mixed-inbound (Socks/HTTP).</small></div>`;
+    } else {
+         console.warn("Mixed-in inbound not found in template for populating form.");
+    }
 
-    try {
-        const dnsDirect = config.dns?.servers?.find(s => s.tag === 'dns-direct');
-        if (dnsDirect) {
-            document.getElementById('dns-direct-server').value = dnsDirect.server || 'dns.alidns.com';
-        } else { console.warn("dns-direct server not found in template"); }
-    } catch(e){ console.warn("Failed to populate dns-direct server", e); }
+    const mixedIn2 = config.inbounds?.find(i => i.tag === 'mixed-in2'); // Only in v1_12
+    if (mixedIn2) {
+         html += `<div class="setting-item"><label for="mixed-in2-port">Mixed Inbound 2 Port:</label>
+                  <input type="number" id="mixed-in2-port" value="${mixedIn2.listen_port || 20809}" min="1" max="65535">
+                  <small>Port for the second mixed-inbound (routed to proxy).</small></div>`;
+    } // No warning needed if it's just not in the template
 
-    try { document.getElementById('dns-independent-cache').checked = config.dns?.independent_cache === true; } catch(e){ console.warn("Failed to set dns independent_cache", e); }
+     const tunIn = config.inbounds?.find(i => i.tag === 'tun-in');
+     if (tunIn) {
+         html += `<div class="setting-item setting-checkbox"><input type="checkbox" id="tun-nat-independent" ${tunIn.endpoint_independent_nat === true ? 'checked' : ''}>
+                  <label for="tun-nat-independent">TUN Endpoint Independent NAT</label><small>Enable/disable EIM.</small></div>`;
+         html += `<div class="setting-item setting-checkbox"><input type="checkbox" id="tun-auto-route" ${tunIn.auto_route === true ? 'checked' : ''}>
+                  <label for="tun-auto-route">TUN Auto Route</label><small>Let sing-box handle routing table.</small></div>`;
+          // strict_route is not exposed via simple checkbox
+         html += `<div class="setting-item"><label for="tun-mtu">TUN MTU:</label>
+                  <input type="number" id="tun-mtu" value="${tunIn.mtu || 9000}" min="576">
+                  <small>Maximum Transmission Unit for TUN.</small></div>`;
+
+          if (tunIn.platform?.http_proxy) {
+               html += `<div class="setting-item"><label for="tun-http-proxy-server">TUN HTTP Proxy Server:</label>
+                        <input type="text" id="tun-http-proxy-server" value="${tunIn.platform.http_proxy.server || '127.0.0.1'}">
+                        <small>Address for TUN's built-in HTTP proxy.</small></div>`;
+               html += `<div class="setting-item"><label for="tun-http-proxy-port">TUN HTTP Proxy Port:</label>
+                        <input type="number" id="tun-http-proxy-port" value="${tunIn.platform.http_proxy.server_port || 20808}" min="1" max="65535">
+                        <small>Port for TUN's built-in HTTP proxy.</small></div>`;
+          } else { console.warn("TUN http_proxy platform not found in template or disabled for populating form."); } // Added check
+     } else { console.warn("TUN inbound not found in template for populating form."); } // Added check
+
+    html += '</div>'; // End Inbounds group
+
+    // --- DNS Settings ---
+    html += '<div class="setting-group"><h3>DNS Settings</h3>';
+     const dnsRemote = config.dns?.servers?.find(s => s.tag === 'dns-remote' || s.tag === 'dns-proxy'); // Handle different DNS proxy tags
+     if (dnsRemote) {
+        html += `<div class="setting-item"><label for="dns-remote-server">DNS Proxy Server (${dnsRemote.tag}):</label>
+                 <input type="text" id="dns-remote-server" value="${dnsRemote.address || dnsRemote.server || ''}">
+                 <small>Address for the main DNS server used by proxy detour (e.g., tls://9.9.9.9).</small></div>`; // Use address or server
+     } else { console.warn("DNS proxy server not found in template for populating form."); }
+
+    const dnsDirect = config.dns?.servers?.find(s => s.tag === 'dns-direct');
+     if (dnsDirect) {
+        html += `<div class="setting-item"><label for="dns-direct-server">DNS Direct Server:</label>
+                 <input type="text" id="dns-direct-server" value="${dnsDirect.address || dnsDirect.server || ''}">
+                 <small>Address for the DNS server used by direct detour (e.g., tcp://8.8.8.8).</small></div>`; // Use address or server
+     } else { console.warn("DNS direct server not found in template for populating form."); }
 
 
-    try { document.getElementById('route-final-outbound').value = config.route?.final || 'proxy'; } catch(e){ console.warn("Failed to set route final outbound", e); }
-    try { document.getElementById('default-domain-resolver').value = config.route?.default_domain_resolver?.server || 'dns-direct'; } catch(e){ console.warn("Failed to set default domain resolver", e); }
-    try { document.getElementById('route-auto-detect-interface').checked = config.route?.auto_detect_interface === true; } catch(e){ console.warn("Failed to set route auto_detect_interface", e); }
+    html += `<div class="setting-item setting-checkbox"><input type="checkbox" id="dns-independent-cache" ${config.dns?.independent_cache === true ? 'checked' : ''}>
+             <label for="dns-independent-cache">Independent DNS Cache</label><small>Use a cache separate from system DNS.</small></div>`;
+
+     // Add other DNS settings if applicable to the current template (e.g., cache_capacity, strategy)
+     if (config.dns?.cache_capacity !== undefined) {
+          html += `<div class="setting-item"><label for="dns-cache-capacity">DNS Cache Capacity:</label>
+                   <input type="number" id="dns-cache-capacity" value="${config.dns.cache_capacity}" min="0">
+                   <small>Number of entries in DNS cache.</small></div>`;
+     }
+      if (config.dns?.strategy !== undefined) {
+           html += `<div class="setting-item"><label for="dns-strategy">DNS Strategy:</label>
+                    <input type="text" id="dns-strategy" value="${config.dns.strategy || 'ipv4_only'}">
+                    <small>e.g., "ipv4_only", "ipv6_only", "ipv4_first".</small></div>`;
+      }
+      if (config.dns?.disable_cache !== undefined) {
+          html += `<div class="setting-item setting-checkbox"><input type="checkbox" id="dns-disable-cache" ${config.dns.disable_cache === true ? 'checked' : ''}>
+                   <label for="dns-disable-cache">Disable DNS Cache</label><small>Turn off DNS caching.</small></div>`;
+      }
+      if (config.dns?.disable_expire !== undefined) {
+           html += `<div class="setting-item setting-checkbox"><input type="checkbox" id="dns-disable-expire" ${config.dns.disable_expire === true ? 'checked' : ''}>
+                   <label for="dns-disable-expire">Disable DNS Expire</label><small>Prevent cache expiration.</small></div>`;
+      }
+       if (config.dns?.reverse_mapping !== undefined) {
+           html += `<div class="setting-item setting-checkbox"><input type="checkbox" id="dns-reverse-mapping" ${config.dns.reverse_mapping === true ? 'checked' : ''}>
+                   <label for="dns-reverse-mapping">Enable Reverse Mapping</label><small>Perform reverse DNS lookups.</small></div>`;
+      }
 
 
-     try {
-        const experimental = config.experimental;
-         if (experimental) {
-             document.getElementById('cache-file-enabled').checked = experimental.cache_file?.enabled === true;
-             document.getElementById('cache-file-path').value = experimental.cache_file?.path || 'cache.db';
-             document.getElementById('cache-file-store-fakeip').checked = experimental.cache_file?.store_fakeip === true;
+    html += '</div>'; // End DNS group
 
-             if (experimental.clash_api) {
-                document.getElementById('clash-api-controller').value = experimental.clash_api.external_controller || '127.0.0.1:9090';
-                document.getElementById('clash-api-ui-url').value = experimental.clash_api.external_ui_download_url || 'https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip';
-                 document.getElementById('clash-api-ui-detour').value = experimental.clash_api.external_ui_download_detour || 'proxy';
-             } else { console.warn("Clash API settings not found in template"); }
-         } else { console.warn("Experimental settings not found in template"); }
-     } catch(e){ console.warn("Failed to populate experimental settings", e); }
+    // --- Routing ---
+    html += '<div class="setting-group"><h3>Routing</h3>';
+    html += `<div class="setting-item"><label for="route-final-outbound">Route Final Outbound Tag:</label>
+             <input type="text" id="route-final-outbound" value="${config.route?.final || 'proxy'}">
+             <small>The tag of the default outbound/selector for unmatched traffic (default: proxy).</small></div>`;
 
-     // Populate remote rule sets
-     populateRuleSetsSettings(config.route?.rule_set);
+     if (config.route?.default_domain_resolver !== undefined) { // Only in v1_12
+        html += `<div class="setting-item"><label for="default-domain-resolver">Default Domain Resolver:</label>
+                 <input type="text" id="default-domain-resolver" value="${config.route?.default_domain_resolver?.server || 'dns-direct'}">
+                 <small>The DNS server tag for default domain lookups (default: dns-direct).</small></div>`;
+     }
+
+    html += `<div class="setting-item setting-checkbox"><input type="checkbox" id="route-auto-detect-interface" ${config.route?.auto_detect_interface === true ? 'checked' : ''}>
+             <label for="route-auto-detect-interface">Auto Detect Interface</label><small>Attempt to automatically determine the outgoing interface.</small></div>`;
+
+    html += '</div>'; // End Routing group
+
+    // --- Remote Rule Sets ---
+     if (config.route?.rule_set && Array.isArray(config.route.rule_set)) {
+         html += '<div class="setting-group"><h3>Remote Rule Sets</h3><p>Customize URL, detour, and update interval for remote rule sets.</p>';
+         config.route.rule_set.forEach(ruleSet => {
+             html += generateRuleSetHtml(ruleSet);
+         });
+         html += '</div>'; // End Rule Sets group
+     } else {
+         console.warn("No rule_set array found in route section of template for populating form.");
+     }
+
+
+    // --- Experimental & Clash API ---
+    html += '<div class="setting-group"><h3>Experimental & Clash API</h3>';
+     if (config.experimental?.cache_file !== undefined) { // Check if cache_file exists
+         html += `<div class="setting-item setting-checkbox"><input type="checkbox" id="cache-file-enabled" ${config.experimental.cache_file?.enabled === true ? 'checked' : ''}>
+                  <label for="cache-file-enabled">Enable Cache File</label><small>Store DNS/FakeIP/RDRC cache to file.</small></div>`;
+         html += `<div class="setting-item"><label for="cache-file-path">Cache File Path:</label>
+                  <input type="text" id="cache-file-path" value="${config.experimental.cache_file?.path || 'cache.db'}">
+                  <small>Path for the cache database file.</small></div>`;
+         if (config.experimental.cache_file?.store_fakeip !== undefined) {
+             html += `<div class="setting-item setting-checkbox"><input type="checkbox" id="cache-file-store-fakeip" ${config.experimental.cache_file.store_fakeip === true ? 'checked' : ''}>
+                      <label for="cache-file-store-fakeip">Store FakeIP in Cache</label><small>Save FakeIP mappings.</small></div>`;
+         }
+          if (config.experimental.cache_file?.store_rdrc !== undefined) {
+              html += `<div class="setting-item setting-checkbox"><input type="checkbox" id="cache-file-store-rdrc" ${config.experimental.cache_file.store_rdrc === true ? 'checked' : ''}>
+                       <label for="cache-file-store-rdrc">Store RDRC in Cache</label><small>Save RDRC entries.</small></div>`;
+          }
+          if (config.experimental.cache_file?.rdrc_timeout !== undefined) {
+              html += `<div class="setting-item"><label for="cache-file-rdrc-timeout">RDRC Timeout:</label>
+                       <input type="text" id="cache-file-rdrc-timeout" value="${config.experimental.cache_file.rdrc_timeout || '1d'}">
+                       <small>Timeout for RDRC entries (e.g., "1d").</small></div>`;
+          }
+     } else { console.warn("Experimental cache_file settings not found in template for populating form."); }
+
+
+     if (config.experimental?.clash_api !== undefined) { // Check if clash_api exists
+         html += `<div class="setting-item"><label for="clash-api-controller">Clash API Controller:</label>
+                  <input type="text" id="clash-api-controller" value="${config.experimental.clash_api.external_controller || '127.0.0.1:9090'}">
+                  <small>Address and port for the Clash API.</small></div>`;
+         if (config.experimental.clash_api.external_ui_download_url !== undefined) {
+             html += `<div class="setting-item"><label for="clash-api-ui-url">Clash API UI Download URL:</label>
+                      <input type="text" id="clash-api-ui-url" value="${config.experimental.clash_api.external_ui_download_url || 'https://github.com/MetaCubeX/Yacd-meta/archive/gh-pages.zip'}">
+                      <small>URL to download external UI (e.g., dashboard ZIP).</small></div>`;
+         }
+          if (config.experimental.clash_api.external_ui_download_detour !== undefined) {
+              html += `<div class="setting-item"><label for="clash-api-ui-detour">Clash API UI Download Detour:</label>
+                       <input type="text" id="clash-api-ui-detour" value="${config.experimental.clash_api.external_ui_download_detour || 'proxy'}">
+                       <small>Outbound tag for downloading the UI (default: proxy).</small></div>`;
+          }
+           // external_ui is typically a fixed string ("ui" or "dashboard"), not usually edited via form
+     } else { console.warn("Experimental clash_api settings not found in template for populating form."); }
+
+
+    html += '</div>'; // End Experimental group
+
+    settingsContainer.innerHTML = html;
+
+    // Set the correct log level value after HTML is inserted
+    try { document.getElementById('log-level').value = config.log?.level || 'error'; } catch(e){ console.warn("Failed to set log level value post-insert", e); }
+
+    // Attach event listener to the Reset button here
+    document.getElementById('reset-settings-button').onclick = () => populateSettingsForm(getCurrentlySelectedTemplate());
 }
 
 
@@ -1402,25 +1301,28 @@ function applySettingsToTemplate(template) {
     // Deep copy the template first
     const config = JSON.parse(JSON.stringify(template));
 
+    // --- General & Logging ---
     try { if (config.log) config.log.level = document.getElementById('log-level').value; } catch(e){ console.warn("Failed to apply log level", e); }
     try { if (config.log) config.log.timestamp = document.getElementById('log-timestamp').checked; } catch(e){ console.warn("Failed to apply log timestamp", e); }
+    // If log was missing, and enabled is false in template V1_11, keep it false if checkbox added? Not added for now.
 
 
+    // --- Inbounds ---
     try {
-        const mixedIn = config.inbounds?.find(i => i.tag === 'mixed-in');
+        const mixedIn = config.inbounds?.find(i => i.tag === 'mixed-in' || i.tag === 'mixed-in-8181');
         if (mixedIn) {
             mixedIn.listen = document.getElementById('mixed-in-listen').value;
             mixedIn.listen_port = parseInt(document.getElementById('mixed-in-port').value, 10);
-            if(isNaN(mixedIn.listen_port)) mixedIn.listen_port = 20808;
+            if(isNaN(mixedIn.listen_port)) mixedIn.listen_port = (mixedIn.tag === 'mixed-in-8181' ? 8181 : 20808); // Fallback based on tag
         }
     } catch(e){ console.warn("Failed to apply mixed-in settings", e); }
 
      try {
         const mixedIn2 = config.inbounds?.find(i => i.tag === 'mixed-in2');
         if (mixedIn2) {
-            mixedIn2.listen = document.getElementById('mixed-in-listen').value; // Use value from mixed-in listen field
+             mixedIn2.listen = document.getElementById('mixed-in-listen').value; // Use value from mixed-in listen field
             mixedIn2.listen_port = parseInt(document.getElementById('mixed-in2-port').value, 10);
-            if(isNaN(mixedIn2.listen_port)) mixedIn2.listen_port = 20809;
+            if(isNaN(mixedIn2.listen_port)) mixedIn2.listen_port = 20809; // Fallback
         }
     } catch(e){ console.warn("Failed to apply mixed-in2 settings", e); }
 
@@ -1428,8 +1330,8 @@ function applySettingsToTemplate(template) {
     try {
         const tunIn = config.inbounds?.find(i => i.tag === 'tun-in');
          if (tunIn) {
-            tunIn.endpoint_independent_nat = document.getElementById('tun-nat-independent').checked;
-            tunIn.auto_route = document.getElementById('tun-auto-route').checked;
+            if (tunIn.endpoint_independent_nat !== undefined) tunIn.endpoint_independent_nat = document.getElementById('tun-nat-independent').checked;
+            if (tunIn.auto_route !== undefined) tunIn.auto_route = document.getElementById('tun-auto-route').checked;
             tunIn.mtu = parseInt(document.getElementById('tun-mtu').value, 10);
              if (isNaN(tunIn.mtu)) tunIn.mtu = 9000;
 
@@ -1437,45 +1339,57 @@ function applySettingsToTemplate(template) {
                 tunIn.platform.http_proxy.server = document.getElementById('tun-http-proxy-server').value;
                 tunIn.platform.http_proxy.server_port = parseInt(document.getElementById('tun-http-proxy-port').value, 10);
                  if(isNaN(tunIn.platform.http_proxy.server_port)) tunIn.platform.http_proxy.server_port = 20808;
-             } else {
-                 // Create platform.http_proxy if it didn't exist but TUN did
-                 tunIn.platform = tunIn.platform || {};
-                 tunIn.platform.http_proxy = {
-                     enabled: true, // Assuming enabled by default if configured via form
-                     server: document.getElementById('tun-http-proxy-server').value,
-                     server_port: parseInt(document.getElementById('tun-http-proxy-port').value, 10)
-                 };
-                 if(isNaN(tunIn.platform.http_proxy.server_port)) tunIn.platform.http_proxy.server_port = 20808;
+                // Assuming platform.http_proxy.enabled is true if these fields are present
              }
+             // interface_name, stack, strict_route not exposed via form
          }
     } catch(e){ console.warn("Failed to apply tun settings", e); }
 
 
+    // --- DNS Settings ---
     try {
-        const dnsRemote = config.dns?.servers?.find(s => s.tag === 'dns-remote');
+        const dnsRemote = config.dns?.servers?.find(s => s.tag === 'dns-remote' || s.tag === 'dns-proxy');
         if (dnsRemote) {
-            dnsRemote.server = document.getElementById('dns-remote-server').value;
+             // DNS server address can be 'address' or 'server' depending on type
+             if (dnsRemote.address !== undefined) dnsRemote.address = document.getElementById('dns-remote-server').value;
+             else if (dnsRemote.server !== undefined) dnsRemote.server = document.getElementById('dns-remote-server').value;
+             else dnsRemote.server = document.getElementById('dns-remote-server').value; // As fallback
         }
-    } catch(e){ console.warn("Failed to apply dns-remote server", e); }
+    } catch(e){ console.warn("Failed to apply dns-remote/proxy server", e); }
 
     try {
         const dnsDirect = config.dns?.servers?.find(s => s.tag === 'dns-direct');
         if (dnsDirect) {
-            dnsDirect.server = document.getElementById('dns-direct-server').value;
+             if (dnsDirect.address !== undefined) dnsDirect.address = document.getElementById('dns-direct-server').value;
+             else if (dnsDirect.server !== undefined) dnsDirect.server = document.getElementById('dns-direct-server').value;
+             else dnsDirect.server = document.getElementById('dns-direct-server').value; // As fallback
         }
     } catch(e){ console.warn("Failed to apply dns-direct server", e); }
 
-    try { if (config.dns) config.dns.independent_cache = document.getElementById('dns-independent-cache').checked; } catch(e){ console.warn("Failed to apply dns independent_cache", e); }
+    try { if (config.dns?.independent_cache !== undefined) config.dns.independent_cache = document.getElementById('dns-independent-cache').checked; } catch(e){ console.warn("Failed to apply dns independent_cache", e); }
+
+     // Apply other DNS settings if applicable to the current template
+      try {
+          if (config.dns?.cache_capacity !== undefined) {
+              config.dns.cache_capacity = parseInt(document.getElementById('dns-cache-capacity').value, 10);
+              if (isNaN(config.dns.cache_capacity)) config.dns.cache_capacity = 2048;
+          }
+      } catch(e){ console.warn("Failed to apply dns cache_capacity", e); }
+      try { if (config.dns?.strategy !== undefined) config.dns.strategy = document.getElementById('dns-strategy').value; } catch(e){ console.warn("Failed to apply dns strategy", e); }
+      try { if (config.dns?.disable_cache !== undefined) config.dns.disable_cache = document.getElementById('dns-disable-cache').checked; } catch(e){ console.warn("Failed to apply dns disable_cache", e); }
+      try { if (config.dns?.disable_expire !== undefined) config.dns.disable_expire = document.getElementById('dns-disable-expire').checked; } catch(e){ console.warn("Failed to apply dns disable_expire", e); }
+       try { if (config.dns?.reverse_mapping !== undefined) config.dns.reverse_mapping = document.getElementById('dns-reverse-mapping').checked; } catch(e){ console.warn("Failed to apply dns reverse_mapping", e); }
+       // log.disabled specific to v1_11 template's log block - not exposed for simplicity, but could be added.
 
 
-    try { if (config.route) config.route.final = document.getElementById('route-final-outbound').value; } catch(e){ console.warn("Failed to apply route final outbound", e); }
+    // --- Routing ---
+    try { if (config.route?.final !== undefined) config.route.final = document.getElementById('route-final-outbound').value; } catch(e){ console.warn("Failed to apply route final outbound", e); }
     try {
-        if (config.route) {
-            config.route.default_domain_resolver = config.route.default_domain_resolver || {};
+        if (config.route?.default_domain_resolver !== undefined) {
             config.route.default_domain_resolver.server = document.getElementById('default-domain-resolver').value;
         }
     } catch(e){ console.warn("Failed to apply default domain resolver", e); }
-    try { if (config.route) config.route.auto_detect_interface = document.getElementById('route-auto-detect-interface').checked; } catch(e){ console.warn("Failed to apply route auto_detect_interface", e); }
+    try { if (config.route?.auto_detect_interface !== undefined) config.route.auto_detect_interface = document.getElementById('route-auto-detect-interface').checked; } catch(e){ console.warn("Failed to apply route auto_detect_interface", e); }
 
 
     // Apply Remote Rule Sets settings
@@ -1501,12 +1415,13 @@ function applySettingsToTemplate(template) {
                      // Create a shallow copy to modify
                     const updatedRuleSet = { ...ruleSet };
 
+                    // Only apply if the input element exists (should due to populate logic)
                     if (detourInput) updatedRuleSet.download_detour = detourInput.value || undefined; // Use undefined for empty string
-                    if (intervalInput) updatedRuleSet.update_interval = intervalInput.value || undefined;
+                    if (intervalInput) updatedRuleSet.update_interval = intervalInput.value || undefined; // Use undefined for empty string
 
                     updatedRuleSets.push(updatedRuleSet);
                 } else if (!enabledCheckbox) {
-                     console.warn(`Checkbox for rule set ${ruleSet.tag} not found, keeping it.`);
+                     console.warn(`Checkbox for rule set ${ruleSet.tag} not found during apply. Keeping original.`);
                      updatedRuleSets.push(ruleSet); // Keep if control not found
                 } else {
                      console.log(`Rule set ${ruleSet.tag} disabled by user.`);
@@ -1517,61 +1432,77 @@ function applySettingsToTemplate(template) {
     } catch(e){ console.warn("Failed to apply remote rule set settings", e); }
 
 
+     // --- Experimental ---
      try {
         const experimental = config.experimental;
          if (experimental) {
-             experimental.cache_file = experimental.cache_file || {};
-             experimental.cache_file.enabled = document.getElementById('cache-file-enabled').checked;
-             experimental.cache_file.path = document.getElementById('cache-file-path').value || undefined;
-             experimental.cache_file.store_fakeip = document.getElementById('cache-file-store-fakeip').checked;
+             // Check existence before trying to apply values
+             if (experimental.cache_file !== undefined) {
+                 experimental.cache_file = experimental.cache_file || {};
+                 if (experimental.cache_file.enabled !== undefined) experimental.cache_file.enabled = document.getElementById('cache-file-enabled').checked;
+                 if (experimental.cache_file.path !== undefined) experimental.cache_file.path = document.getElementById('cache-file-path').value || undefined;
+                 if (experimental.cache_file.store_fakeip !== undefined) experimental.cache_file.store_fakeip = document.getElementById('cache-file-store-fakeip').checked;
+                 if (experimental.cache_file.store_rdrc !== undefined) experimental.cache_file.store_rdrc = document.getElementById('cache-file-store-rdrc').checked;
+                 if (experimental.cache_file.rdrc_timeout !== undefined) experimental.cache_file.rdrc_timeout = document.getElementById('cache-file-rdrc-timeout').value || undefined;
+             }
 
-             experimental.clash_api = experimental.clash_api || {};
-             experimental.clash_api.external_controller = document.getElementById('clash-api-controller').value || undefined;
-             experimental.clash_api.external_ui = experimental.clash_api.external_ui || 'ui'; // Keep default if not exposed
-             experimental.clash_api.external_ui_download_url = document.getElementById('clash-api-ui-url').value || undefined;
-             experimental.clash_api.external_ui_download_detour = document.getElementById('clash-api-ui-detour').value || undefined;
+             if (experimental.clash_api !== undefined) {
+                 experimental.clash_api = experimental.clash_api || {};
+                 if (experimental.clash_api.external_controller !== undefined) experimental.clash_api.external_controller = document.getElementById('clash-api-controller').value || undefined;
+                 // external_ui is fixed string, not applied from form
+                 if (experimental.clash_api.external_ui_download_url !== undefined) experimental.clash_api.external_ui_download_url = document.getElementById('clash-api-ui-url').value || undefined;
+                 if (experimental.clash_api.external_ui_download_detour !== undefined) experimental.clash_api.external_ui_download_detour = document.getElementById('clash-api-ui-detour').value || undefined;
+             }
          }
      } catch(e){ console.warn("Failed to apply experimental settings", e); }
 
 
     // Find the selector where parsed proxies should be added *in the modified config*
+    // Use the potentially updated route.final tag
     const mainSelectorTag = config.route?.final || 'proxy';
     const proxySelector = config.outbounds?.find(outbound => outbound.tag === mainSelectorTag && (outbound.type === 'selector' || outbound.type === 'urltest'));
 
     // Find the default 'Auto' urltest if it exists in the modified config
-    const autoUrlTest = config.outbounds?.find(outbound => outbound.tag === 'Auto' && outbound.type === 'urltest');
-
+    const autoUrlTest = config.outbounds?.find(outbound => outbound.tag === 'Auto' && outbound.type === 'urltest'); // Assuming 'Auto' tag is consistent if it exists
 
     return {
         config: config,
-        proxySelector: proxySelector,
+        proxySelector: proxySelector, // Return references to the specific objects for easier access later
         autoUrlTest: autoUrlTest
     };
+}
+
+// --- Get Currently Selected Template ---
+function getCurrentlySelectedTemplate() {
+    const selectElement = document.getElementById('template-select');
+    const selectedTemplateKey = selectElement.value;
+    return templates[selectedTemplateKey] ? JSON.parse(JSON.stringify(templates[selectedTemplateKey])) : JSON.parse(JSON.stringify(templateV1_12)); // Default to V1_12 if key is invalid
 }
 
 
 // --- Navigation Function ---
  function showSection(sectionId) {
+     // Hide all sections
      document.getElementById('input-section').style.display = 'none';
      document.getElementById('settings-section').style.display = 'none';
      document.getElementById('output-section').style.display = 'none';
 
+     // Show the requested section
      document.getElementById(sectionId).style.display = 'block';
 
      // Actions when showing a section
      if (sectionId === 'settings-section') {
-         // Populate the settings form when navigating to it
-         // We use defaultBaseTemplate here to get the structure,
-         // If you wanted to preserve user-edited settings while navigating back/forth,
-         // you'd need to store the state of the form inputs somewhere (e.g., a global object)
-         populateSettingsForm(defaultBaseTemplate);
+         // Populate the settings form based on the currently selected template
+         const selectedTemplate = getCurrentlySelectedTemplate();
+         populateSettingsForm(selectedTemplate);
      } else if (sectionId === 'output-section') {
           // Trigger generation when navigating to output section
-          parseAndGenerateConfig(); // This function will handle errors and navigations
+          parseAndGenerateConfig(); // This function handles getting settings and input
      } else { // Likely 'input-section'
          // Clear output when navigating away from output section
          document.getElementById('outputConfig').value = '';
-         // Optional: Clear settings form when leaving it? Probably better to keep values until reset/new session.
+         // Optionally, clear or reset settings form fields when leaving settings?
+         // For now, we repopulate settings form on entry, so state isn't saved between visits.
      }
  }
 
@@ -1588,11 +1519,13 @@ async function parseAndGenerateConfig() {
 
     let configWithSettingsApplied; // This will hold the template modified by settings
     try {
-         // Apply settings from the form to a copy of the default template
-        const { config, proxySelector, autoUrlTest } = applySettingsToTemplate(defaultBaseTemplate); // Use defaultBaseTemplate here
+         // Get the currently selected template and apply settings from the form
+        const selectedTemplate = getCurrentlySelectedTemplate();
+        const { config, proxySelector, autoUrlTest } = applySettingsToTemplate(selectedTemplate);
         configWithSettingsApplied = config;
 
-         // Pass the found selectors from the modified config
+         // Pass the found selectors from the modified config using temporary properties
+         // This is a bit hacky but avoids returning a complex structure
         configWithSettingsApplied._proxySelector = proxySelector;
         configWithSettingsApplied._autoUrlTest = autoUrlTest;
 
@@ -1600,7 +1533,7 @@ async function parseAndGenerateConfig() {
         console.error("Failed to apply settings to template:", error);
         SnackBar({ message: `Error applying settings: ${error.message}`, status: "error" });
         showSection('settings-section'); // Go back to settings on error
-        return;
+        return; // Stop the process
     }
 
 
@@ -1611,10 +1544,11 @@ async function parseAndGenerateConfig() {
                  message: "Input is empty. Please paste proxy URLs.",
                  status: "error"
               });
-              showSection('input-section');
-              return;
+              showSection('input-section'); // Go back to input
+              return; // Stop the process
          }
 
+        // Attempt decoding input (same logic as previous version)
         let decodedInput = inputText;
         try {
             const potentialDecoded = decodeURIComponent(inputText);
@@ -1664,17 +1598,30 @@ async function parseAndGenerateConfig() {
 
         if (validOutbounds.length === 0) {
              SnackBar({
-                 message: "No valid URLs were successfully parsed.",
-                 status: "error"
+                 message: "No valid URLs were successfully parsed. Generated base config only.",
+                 status: "warning"
              });
-             // Show output even if empty, so user gets the base config
+             // Continue to show the base config even if no proxies parsed
         }
 
         // --- Configuration Modification Logic ---
 
         const generatedConfig = configWithSettingsApplied;
-        const proxySelector = generatedConfig._proxySelector;
+        const proxySelector = generatedConfig._proxySelector; // Retrieve temporary references
         const autoUrlTest = generatedConfig._autoUrlTest;
+
+        // Ensure outbounds array exists (should due to templates, but good practice)
+         if (!generatedConfig.outbounds || !Array.isArray(generatedConfig.outbounds)) {
+             console.error("Template is missing the 'outbounds' array.");
+              SnackBar({
+                 message: "Template missing 'outbounds' array. Cannot add proxies.",
+                 status: "error"
+              });
+              // Show the output section with the base config, but indicate error
+              document.getElementById("outputConfig").value = JSON.stringify(cleanObject(generatedConfig), null, 2); // Clean and show the base config
+             return; // Stop adding proxies
+         }
+
 
         // 1. Generate unique tags for the parsed outbounds
         let tagCount = {};
@@ -1683,7 +1630,7 @@ async function parseAndGenerateConfig() {
           if (typeof tag !== 'string' || tag.trim() === '') {
              tag = 'Untagged';
           }
-          tag = tag.replace(/[^\w\s\-\.]/g, '_').trim();
+          tag = tag.replace(/[^\w\s\-\.]/g, '_').trim(); // Clean up invalid characters for tags
           if (tag in tagCount) {
             tagCount[tag]++;
             return `${tag}_${tagCount[tag]}`;
@@ -1700,6 +1647,8 @@ async function parseAndGenerateConfig() {
 
         // 2. Add parsed outbounds to selector groups and the main list
          if (proxySelector && proxySelector.outbounds && Array.isArray(proxySelector.outbounds)) {
+              // Clear default outbounds in the selector if they exist (like "trojan-ws-mux" in v1.11)
+             proxySelector.outbounds = [];
              // Add the tags of the new proxies to the main selector's list
              proxySelector.outbounds.push(...proxyTags);
              console.log(`Added ${proxyTags.length} proxy tags to the '${proxySelector.tag}' selector.`);
@@ -1708,6 +1657,8 @@ async function parseAndGenerateConfig() {
          }
 
          if (autoUrlTest && autoUrlTest.outbounds && Array.isArray(autoUrlTest.outbounds)) {
+             // Clear default outbounds in the Auto selector if they exist
+             autoUrlTest.outbounds = [];
              // Add the tags to the 'Auto' selector as well
               autoUrlTest.outbounds.push(...proxyTags);
               console.log(`Added ${proxyTags.length} proxy tags to the 'Auto' urltest.`);
@@ -1732,20 +1683,99 @@ async function parseAndGenerateConfig() {
                                    .filter(server => typeof server === 'string' && server.trim() !== '')
                                    .filter(server => !ipChecker(server));
 
-         if (servers.length === 0) {
-               if (generatedConfig.dns && generatedConfig.dns.rules) {
-                   const originalRuleCount = generatedConfig.dns.rules.length;
+        // Logic depends on which template is active and how its DNS rules are structured
+        const isV1_12 = getCurrentlySelectedTemplate() === templates.templateV1_12; // Simple check for template type
+
+         if (generatedConfig.dns && generatedConfig.dns.rules) {
+             const originalRuleCount = generatedConfig.dns.rules.length;
+             if (servers.length === 0) {
+                  // If NO domain servers found, remove rules pointing to 'dns-direct' or 'dns-remote' (if they rely on domain servers)
+                  // This needs careful handling depending on the rule's purpose
                    generatedConfig.dns.rules = generatedConfig.dns.rules.filter((rule) => {
-                       return !(
-                           (rule.server === "direct-dns") ||
-                           (rule.action === "hijack-dns" && rule.server === "direct-dns")
+                       // Example: If a rule uses 'dns-direct' or 'dns-remote' AND targets domains/rulesets that rely on domain servers
+                       // This is complex to determine generically. A simpler approach is to only remove rules
+                       // explicitly hijacking or routing to a *specific* DNS server tag that requires a domain server backend,
+                       // *if* that backend server is gone.
+
+                       // For this example, let's focus on removing rules that resolve to a non-IP DNS server *if* no non-IP servers exist in outbounds.
+                       // This is still difficult as DNS server definitions are separate.
+
+                       // Let's stick to the previous logic: remove rules pointing to 'direct-dns' tag if no domain servers in outbounds.
+                       // (Note: 'direct-dns' tag is not in your templates, but was in a prior version of your script's logic.
+                       // The current templates use 'dns-direct' and 'dns-remote'/'dns-proxy' as tags).
+                       // Let's check the DNS servers themselves. Are 'dns-direct' or 'dns-remote'/'dns-proxy' defined with *domain* addresses like 'cloudflare-dns.com'?
+                       const dnsServers = generatedConfig.dns.servers;
+                       const hasDomainDnsServer = dnsServers.some(s =>
+                           (s.tag === 'dns-direct' || s.tag === 'dns-remote' || s.tag === 'dns-proxy') &&
+                           typeof (s.address || s.server) === 'string' && !ipChecker(s.address || s.server)
                        );
+
+                       // If no domain DNS servers are defined in the DNS block itself,
+                       // AND no domain servers are in the outbounds, maybe remove some rules?
+                       // This feels overly complex to do generically.
+
+                       // Simpler logic: Just remove rules that *hijack* to a specific DNS server if there are no domain servers *in outbounds*.
+                       // This is still not quite right. The rule's target server ('dns-direct', 'dns-remote', etc.) is defined in dns.servers.
+                       // The original logic "if servers.length === 0 then filter rule.server !== 'direct-dns'" was flawed
+                       // because 'direct-dns' wasn't a tag in the DNS servers list, and it wasn't checking the *type* of the DNS server backend (local, tcp, https).
+
+                       // Let's revert to the original logic's *intent*: if there are no domain-based proxies added, does it affect DNS?
+                       // In your original script, it removed the 'direct-dns' rule. This suggests that specific rule relied on a domain.
+                       // In the provided templates, rules point to 'dns-direct' or 'dns-remote'/'dns-proxy'. These are defined in `dns.servers`.
+                       // The `dns.servers` entries have `type` ('https', 'tcp', 'local') and `server` or `address`.
+                       // The check should probably be: if the *configured* DNS server (e.g., `dns-direct`) has a *domain* address/server,
+                       // and there are no *proxies with domain servers* to reach that DNS server (if it needs a detour), then maybe disable that DNS server or rule?
+                       // This is getting too complex for a simple form.
+
+                       // Let's stick to the most conservative approach: Only remove the 'direct-dns' rule if it exists (it doesn't in these templates)
+                       // OR, if there are no domain *outbound servers* found among the parsed proxies, maybe disable the *remote* DNS server rule?
+                       // Template V1.12: Rule `{"action": "resolve", "server": "dns-remote"}`. If no domain outbounds, maybe this rule is useless?
+                       // Template V1.11: Rules point to `dns-proxy` or `dns-direct`. `dns-proxy` has `detour: "proxy"`. `dns-direct` has `detour: "direct"`.
+                       // If no domain outbounds, the `dns-proxy` server might be unreachable if it's a domain.
+                       // The `dns-direct` server might be unreachable if it's a domain and direct doesn't resolve domains first (it should).
+
+                       // **Revised Simple Logic:** If *no domain-based proxy servers* are successfully parsed, warn the user that remote DNS might fail if it's domain-based, and *optionally* remove the 'resolve' rule that points to the remote DNS server, or change its server to 'dns-local'.
+                       // Let's implement removing the `resolve` rule pointing to the 'dns-remote'/'dns-proxy' tag if no domain proxies were added.
+
+                        const remoteDnsTag = generatedConfig.dns?.final || 'dns-remote'; // Get the tag of the final/remote DNS
+                        const ruleTargetServer = rule.server || rule.action === 'resolve' ? rule.server : undefined; // Get the target server tag from the rule if applicable
+
+                       // Check if the rule targets the remote/final DNS tag AND there are no domain proxies
+                        if (ruleTargetServer === remoteDnsTag && servers.length === 0) {
+                            console.warn(`Removing DNS rule targeting '${remoteDnsTag}' because no domain-based proxy servers were parsed.`);
+                            return false; // Exclude this rule
+                        }
+                        // Keep other rules
+                        return true;
                    });
 
                    if (generatedConfig.dns.rules.length < originalRuleCount) {
-                       console.log(`Removed direct-dns rule(s) from config because no domain servers were found in outbounds.`);
+                       console.log(`Removed some DNS rule(s) based on lack of domain outbound servers.`);
+                       SnackBar({
+                           message: "Some DNS rules removed as no domain proxy servers were parsed.",
+                           status: "warning"
+                       });
                    }
-               }
+                } else { // servers.length > 0
+                    // If domain servers *are* present, ensure the 'resolve' rule targeting the remote DNS exists
+                    const remoteDnsTag = generatedConfig.dns?.final || 'dns-remote';
+                    const resolveRuleExists = generatedConfig.dns.rules.some(rule =>
+                        rule.action === 'resolve' && rule.server === remoteDnsTag
+                    );
+
+                    if (!resolveRuleExists) {
+                         // Find the index where to insert the new rule (e.g., before the final rule if it exists)
+                         const finalRuleIndex = generatedConfig.dns.rules.findIndex(rule => rule === generatedConfig.dns.final); // This find is incorrect
+                          // Find the index before the last rule, or just append
+                         const insertionIndex = generatedConfig.dns.rules.length > 0 ? generatedConfig.dns.rules.length -1 : 0;
+
+                         generatedConfig.dns.rules.splice(insertionIndex, 0, {
+                             "action": "resolve",
+                             "server": remoteDnsTag
+                         });
+                         console.log(`Added 'resolve' DNS rule targeting '${remoteDnsTag}' as domain servers were present.`);
+                    }
+                }
          }
 
 
@@ -1760,8 +1790,6 @@ async function parseAndGenerateConfig() {
           status: "success"
         });
 
-        // Navigation to output is handled by the onclick in HTML now
-
     } catch (error) {
         console.error("An error occurred during the conversion process:", error);
          SnackBar({
@@ -1774,8 +1802,22 @@ async function parseAndGenerateConfig() {
 
 // --- Initial setup ---
  document.addEventListener('DOMContentLoaded', () => {
-     // Populate the settings form with default values initially
-     populateSettingsForm(defaultBaseTemplate);
+     // Add event listener for the template select dropdown
+     document.getElementById('template-select').addEventListener('change', () => {
+         // When template changes, repopulate the settings form with the *new* template's defaults
+         const selectedTemplate = getCurrentlySelectedTemplate();
+         populateSettingsForm(selectedTemplate);
+         // Clear input and output when changing template? Or leave them? Leaving them might be confusing.
+         // Let's clear input and output.
+         document.getElementById('input').value = '';
+         document.getElementById('outputConfig').value = '';
+         SnackBar({ message: "Template changed. Input and Output cleared.", status: "info" });
+     });
+
+     // Populate the settings form with the *initially selected* default template on load
+     const initialTemplate = getCurrentlySelectedTemplate();
+     populateSettingsForm(initialTemplate);
+
      // Start on the input section
      showSection('input-section');
  });
