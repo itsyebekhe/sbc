@@ -1,6 +1,7 @@
 /**
- * This script converts various proxy subscription formats (VLESS, VMess, etc.)
- * into the sing-box JSON configuration format, running entirely in the browser.
+ * This script converts various proxy subscription formats into a sing-box JSON profile.
+ * It is a completely self-contained, client-side tool with no external dependencies.
+ * This version is adapted to work with the Tailwind CSS UI and includes theme toggling.
  */
 
 // --- Global State & Constants ---
@@ -9,10 +10,10 @@ const ALLOWED_SS_METHODS=["chacha20-ietf-poly1305","aes-256-gcm","2022-blake3-ae
 const DEFAULT_HEADER=`//profile-title: base64:{PROFILE_NAME_BASE64}\n//profile-update-interval: 1\n//subscription-userinfo: upload=0; download=0; total=10737418240000000; expire=2546249531\n//support-url: https://t.me/yebekhe\n//profile-web-page-url: ithub.com/itsyebekhe/PSG`;
 
 // #############################################################################
-// Dynamic UI & Core Conversion Logic (Unchanged from previous version)
+// Dynamic UI & Core Conversion Logic (Unchanged)
 // #############################################################################
-function createInputsForObject(o,c,p){for(const k in o){if(!o.hasOwnProperty(k))continue;const v=o[k];const a=p?`${p}.${k}`:k;const f=document.createElement('div');f.className='form-field';const l=document.createElement('label');l.setAttribute('for',a);l.textContent=k;f.appendChild(l);const w=document.createElement('div');w.className='input-wrapper';let i;const t=typeof v;if(t==='boolean'){i=document.createElement('input');i.type='checkbox';i.checked=v}else if(t==='number'){i=document.createElement('input');i.type='number';i.value=v}else if(t==='string'){i=document.createElement('input');i.type='text';i.value=v}else if(Array.isArray(v)||t==='object'&&v!==null){i=document.createElement('textarea');i.value=JSON.stringify(v,null,2)}if(i){i.id=a;i.dataset.path=a;i.dataset.type=Array.isArray(v)?'array':t;w.appendChild(i)}f.appendChild(w);c.appendChild(f)}}
-function buildStructureEditor(d,e){e.innerHTML='';for(const s in d){if(!d.hasOwnProperty(s))continue;if(s==='outbounds')continue;const f=document.createElement('fieldset');f.className='structure-section';const l=document.createElement('legend');l.textContent=s.charAt(0).toUpperCase()+s.slice(1);f.appendChild(l);createInputsForObject(d[s],f,s);e.appendChild(f)}}
+function createInputsForObject(o,c,p){for(const k in o){if(!o.hasOwnProperty(k))continue;const v=o[k];const a=p?`${p}.${k}`:k;const f=document.createElement('div');f.className='form-field p-4 mb-4 border border-gray-300 dark:border-gray-600 rounded-lg';const l=document.createElement('label');l.setAttribute('for',a);l.className='block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300';l.textContent=k;f.appendChild(l);const w=document.createElement('div');w.className='input-wrapper';let i;const t=typeof v;if(t==='boolean'){i=document.createElement('input');i.type='checkbox';i.checked=v;i.className='form-checkbox h-5 w-5 text-blue-600 dark:text-blue-400 focus:ring-blue-500'}else if(t==='number'){i=document.createElement('input');i.type='number';i.value=v;i.className='w-full p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 font-mono text-sm'}else if(t==='string'){i=document.createElement('input');i.type='text';i.value=v;i.className='w-full p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 font-mono text-sm'}else if(Array.isArray(v)||t==='object'&&v!==null){i=document.createElement('textarea');i.value=JSON.stringify(v,null,2);i.className='w-full p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 font-mono text-xs h-32 resize-y'}if(i){i.id=a;i.dataset.path=a;i.dataset.type=Array.isArray(v)?'array':t;w.appendChild(i)}f.appendChild(w);c.appendChild(f)}}
+function buildStructureEditor(d,e){e.innerHTML='';for(const s in d){if(!d.hasOwnProperty(s))continue;if(s==='outbounds')continue;const f=document.createElement('fieldset');f.className='structure-section border border-gray-300 dark:border-gray-600 rounded-lg p-4 mb-4';const l=document.createElement('legend');l.className='text-md font-bold text-gray-700 dark:text-gray-300 px-2 -ml-2';l.textContent=s.charAt(0).toUpperCase()+s.slice(1);f.appendChild(l);createInputsForObject(d[s],f,s);e.appendChild(f)}}
 function getEditedStructure(){const e=JSON.parse(JSON.stringify(ORIGINAL_BASE_STRUCTURE));document.querySelectorAll('#structure-editor [data-path]').forEach(i=>{const p=i.dataset.path;const t=i.dataset.type;let v;if(t==='boolean'){v=i.checked}else if(t==='number'){v=Number(i.value)}else if(t==='array'||t==='object'){try{v=JSON.parse(i.value)}catch(e){alert(`Invalid JSON format for "${p}". Please check your syntax.`);throw e}}else{v=i.value}setValueByPath(e,p,v)});return e}
 function setValueByPath(o,p,v){const k=p.split('.');const l=k.pop();let c=o;for(const e of k){if(!(e in c)){c[e]={}}c=c[e]}c[l]=v}
 function decodeUrlSafeBase64(b){let s=b.replace(/-/g,'+').replace(/_/g,'/');const p=s.length%4;if(p){s+='='.repeat(4-p)}return atob(s)}
@@ -28,11 +29,123 @@ function hy2ToSingbox(c){const p=c.getParam('obfs-password');if(!p)return null;r
 function createTlsSettings(c){return{"enabled":true,"server_name":c.getSni(),"insecure":true,"utls":{"enabled":true,"fingerprint":"chrome"}}}
 function createTransportSettings(c){const t=c.getTransportType();let r=null;switch(t){case'ws':r={"type":"ws","path":c.getPath(),"headers":{"Host":c.getSni()}};break;case'grpc':const s=c.getServiceName();if(!s)return null;r={"type":"grpc","service_name":s};break;case'http':r={"type":"http","host":[c.getSni()],"path":c.getPath()};break}return r}
 function convertToSingboxObject(c){const w=new ConfigWrapper(c);if(!w.isValid()){return null}switch(w.getType()){case"vmess":return vmessToSingbox(w);case"vless":return vlessToSingbox(w);case"trojan":return trojanToSingbox(w);case"ss":return ssToSingbox(w);case"tuic":return tuicToSingbox(w);case"hy2":return hy2ToSingbox(w);default:return null}}
-
-// #############################################################################
-// Main Processing Logic
-// #############################################################################
-function generateSingboxProfile(rawInput,inputFormat,baseStructure,profileName,headerTemplate){let configs;if(inputFormat==='base64'){try{configs=atob(rawInput).split(/[\r\n]+/).filter(l=>l.trim()!=='')}catch(e){alert("Error: The input is not valid Base64 content.");return null}}else{configs=rawInput.split(/[\r\n]+/).filter(l=>l.trim()!=='')}const profileStructure=JSON.parse(JSON.stringify(baseStructure));const urlTestOutbound=profileStructure.outbounds.find(o=>o.type==='urltest');const selectorOutbound=profileStructure.outbounds.find(o=>o.type==='selector');configs.forEach(c=>{const s=convertToSingboxObject(c);if(s!==null){profileStructure.outbounds.push(s);const t=s.tag;if(urlTestOutbound?.outbounds)urlTestOutbound.outbounds.push(t);if(selectorOutbound?.outbounds)selectorOutbound.outbounds.push(t)}});const profileNameBase64=btoa(unescape(encodeURIComponent(profileName)));const finalHeader=headerTemplate.replace('{PROFILE_NAME_BASE64}',profileNameBase64);return`${finalHeader}\n\n${JSON.stringify(profileStructure,null,2)}`}
+function generateSingboxProfile(r,t,e,a,n){let o;if(t==='base64'){try{o=atob(r).split(/[\r\n]+/).filter(l=>l.trim()!=='')}catch(c){alert("Error: The input is not valid Base64 content.");return null}}else{o=r.split(/[\r\n]+/).filter(l=>l.trim()!==''
+)}const i=JSON.parse(JSON.stringify(e));const u=i.outbounds.find(s=>s.type==='urltest');const p=i.outbounds.find(s=>s.type==='selector');o.forEach(f=>{const s=convertToSingboxObject(f);if(s!==null){i.outbounds.push(s);const d=s.tag;if(u?.outbounds)u.outbounds.push(d);if(p?.outbounds)p.outbounds.push(d)}});const b=btoa(unescape(encodeURIComponent(a)));const h=n.replace('{PROFILE_NAME_BASE64}',b);return`${h}\n\n${JSON.stringify(i,null,2)}`}
 
 // --- Script Execution (UI Event Handlers) ---
-document.addEventListener('DOMContentLoaded',()=>{const c=document.getElementById('convert-btn'),d=document.getElementById('download-btn'),o=document.getElementById('copy-btn'),g=document.getElementById('generate-url-btn'),p=document.getElementById('proxy-configs'),n=document.getElementById('profile-name'),h=document.getElementById('header-editor'),w=document.getElementById('output-wrapper'),j=document.getElementById('output-json'),s=document.getElementById('status-message'),e=document.getElementById('structure-editor'),u=document.getElementById('subscription-url-container'),a=document.getElementById('subscription-url'),b=document.getElementById('copy-url-btn');h.value=DEFAULT_HEADER;fetch('structure.json').then(r=>{if(!r.ok)throw new Error(`Could not load structure.json: ${r.statusText}`);return r.json()}).then(r=>{ORIGINAL_BASE_STRUCTURE=r;buildStructureEditor(r,e);s.textContent='';c.disabled=false}).catch(r=>{console.error("Error loading structure.json:",r);s.textContent=`CRITICAL ERROR: Failed to load 'structure.json'.`;c.disabled=true});c.addEventListener('click',()=>{let t;try{t=getEditedStructure()}catch(r){console.error("Could not generate profile:",r);return}const r=p.value.trim(),i=n.value.trim(),l=document.querySelector('input[name="input-format"]:checked').value,f=h.value;if(!r||!i){alert("Please provide subscription content and a profile name.");return}const m=generateSingboxProfile(r,i,t,i,f);if(m){j.textContent=m;Prism.highlightElement(j);w.classList.remove('hidden');u.classList.add('hidden')}});g.addEventListener('click',async()=>{const r=j.textContent;if(!r){alert("Please generate a profile first.");return}const i=g.textContent;g.textContent='Generating...';g.disabled=true;try{const t=await fetch('https://nekobin.com/api/documents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:r})});if(!t.ok)throw new Error(`API Error: ${t.statusText}`);const l=await t.json();const f=l.result.key;const m=`https://nekobin.com/raw/${f}`;a.value=m;u.classList.remove('hidden')}catch(t){console.error('Failed to generate URL:',t);alert('Could not generate subscription URL. Please try again later.')}finally{g.textContent=i;g.disabled=false}});const m=(r,i,t)=>{r.addEventListener('click',()=>{const l=(typeof i==='string')?i:i.value||i.textContent;navigator.clipboard.writeText(l).then(()=>{const f=r.textContent;r.textContent=t;r.style.backgroundColor='#28a745';setTimeout(()=>{r.textContent=f;r.style.backgroundColor=''},2000)}).catch(f=>{console.error('Failed to copy text: ',f);alert('Failed to copy text.')})})};m(o,j,'Copied!');m(b,a,'Copied!');d.addEventListener('click',()=>{const r=j.textContent;const i=new Blob([r],{type:'application/json;charset=utf-8'});const t=URL.createObjectURL(i);const l=document.createElement('a');l.href=t;l.download='profile.json';document.body.appendChild(l);l.click();document.body.removeChild(l);URL.revokeObjectURL(t)})});
+document.addEventListener('DOMContentLoaded', () => {
+    // Get all UI elements
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const sunIcon = document.getElementById('sun-icon');
+    const moonIcon = document.getElementById('moon-icon');
+    const convertBtn = document.getElementById('convert-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    const copyBtn = document.getElementById('copy-btn');
+    const proxyConfigsInput = document.getElementById('proxy-configs');
+    const profileNameInput = document.getElementById('profile-name');
+    const headerEditor = document.getElementById('header-editor');
+    const outputWrapper = document.getElementById('output-wrapper');
+    const outputJsonEl = document.getElementById('output-json');
+    const statusMessageEl = document.getElementById('status-message');
+    const editorContainer = document.getElementById('structure-editor');
+
+    // ** START: THEME TOGGLE LOGIC **
+    const applyTheme = (theme) => {
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+            sunIcon.classList.add('hidden');
+            moonIcon.classList.remove('hidden');
+        } else {
+            document.documentElement.classList.remove('dark');
+            sunIcon.classList.remove('hidden');
+            moonIcon.classList.add('hidden');
+        }
+    };
+
+    // Check for saved theme in localStorage
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(savedTheme);
+
+    themeToggleBtn.addEventListener('click', () => {
+        const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('theme', newTheme);
+        applyTheme(newTheme);
+    });
+    // ** END: THEME TOGGLE LOGIC **
+
+    headerEditor.value = DEFAULT_HEADER;
+
+    fetch('structure.json')
+        .then(response => {
+            if (!response.ok) throw new Error(`Could not load structure.json: ${response.statusText}`);
+            return response.json();
+        })
+        .then(data => {
+            ORIGINAL_BASE_STRUCTURE = data;
+            buildStructureEditor(data, editorContainer);
+            statusMessageEl.classList.add('hidden');
+            convertBtn.disabled = false;
+        })
+        .catch(error => {
+            console.error("Error loading structure.json:", error);
+            statusMessageEl.textContent = `CRITICAL ERROR: Failed to load 'structure.json'. Please ensure the file exists and is accessible.`;
+            statusMessageEl.classList.remove('hidden');
+            convertBtn.disabled = true;
+        });
+
+    convertBtn.addEventListener('click', () => {
+        let baseStructure;
+        try {
+            baseStructure = getEditedStructure();
+        } catch (e) {
+            console.error("Could not generate profile:", e);
+            return;
+        }
+
+        const rawInput = proxyConfigsInput.value.trim();
+        const profileName = profileNameInput.value.trim();
+        const inputFormat = document.querySelector('input[name="input-format"]:checked').value;
+        const headerTemplate = headerEditor.value;
+
+        if (!rawInput || !profileName) {
+            alert("Please provide subscription content and a profile name.");
+            return;
+        }
+
+        const convertedProfile = generateSingboxProfile(rawInput, profileName, baseStructure, profileName, headerTemplate);
+
+        if (convertedProfile) {
+            outputJsonEl.textContent = convertedProfile;
+            Prism.highlightElement(outputJsonEl);
+            outputWrapper.classList.remove('hidden');
+        }
+    });
+
+    copyBtn.addEventListener('click', () => {
+        const textToCopy = outputJsonEl.textContent;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => {
+                copyBtn.textContent = originalText;
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+            alert('Failed to copy text.');
+        });
+    });
+
+    downloadBtn.addEventListener('click', () => {
+        const content = outputJsonEl.textContent;
+        const blob = new Blob([content], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'profile.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+});
