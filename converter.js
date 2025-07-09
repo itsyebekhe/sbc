@@ -11,7 +11,7 @@ const DEFAULT_HEADER = `//profile-title: base64:{PROFILE_NAME_BASE64}
 //profile-update-interval: 1
 //subscription-userinfo: upload=0; download=0; total=10737418240000000; expire=2546249531
 //support-url: https://t.me/yebekhe
-//profile-web-page-url: ithub.com/itsyebekhe/PSG`;
+//profile-web-page-url: github.com/itsyebekhe/PSG`;
 
 // #############################################################################
 // Dynamic UI & Core Conversion Logic (This part is correct and unchanged)
